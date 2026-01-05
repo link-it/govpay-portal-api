@@ -1,0 +1,1110 @@
+openapi: 3.0.3
+info:
+  title: GovPay Portal API
+  description: |
+    API per il portale di pagamento GovPay.
+
+    ## Autenticazione
+    L'API supporta due modalità di accesso:
+    - **Public**: Accesso anonimo senza autenticazione
+    - **SPID**: Accesso autenticato tramite SPID (sessione cookie-based)
+  version: 1.0.0
+  contact:
+    name: GovPay Support
+
+servers:
+  - url: '{hostname}/govpay/frontend/api/pagamento/rs/public/v2'
+    description: API Pubblica
+    variables:
+      hostname:
+        default: https://example.com
+        description: Hostname del server
+  - url: '{hostname}/govpay/frontend/api/pagamento/rs/spid/v2'
+    description: API Autenticata (SPID)
+    variables:
+      hostname:
+        default: https://example.com
+        description: Hostname del server
+
+tags:
+  - name: Anagrafica
+    description: Consultazione delle anagrafiche
+  - name: Pendenze
+    description: Gestione pendenze
+
+paths:
+
+  /profilo:
+    get:
+      tags:
+        - Anagrafica
+      summary: Recupera profilo utente
+      description: |
+        Restituisce i dati del profilo dell'utente autenticato.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: getProfilo
+      servers:
+        - url: '{hostname}/govpay/frontend/api/pagamento/rs/spid/v2'
+          description: API Autenticata (SPID)
+          variables:
+            hostname:
+              default: https://example.com
+      responses:
+        '200':
+          description: Profilo utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profilo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  '/logout':
+    get:
+      summary: Logout
+      description: |
+        Effettua il logout dell'utente autenticato.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: logout
+      tags:
+        - Anagrafica
+      responses:
+        '200':
+          description: Operazione eseguita con successo
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pendenze:
+    get:
+      tags:
+        - Pendenze
+      summary: Elenco pendenze utente
+      description: |
+        Restituisce l'elenco delle pendenze dell'utente autenticato.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: getPendenze
+      parameters:
+        - $ref: '#/components/parameters/StatoPendenzaQuery'
+        - $ref: '#/components/parameters/IdA2AQuery'
+        - $ref: '#/components/parameters/IdPendenzaQuery'
+        - $ref: '#/components/parameters/IdDominioQuery'
+        - $ref: '#/components/parameters/IuvQuery'
+      responses:
+        '200':
+          description: Elenco pendenze
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaPendenze'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  '/pendenze/{idA2A}/{idPendenza}':
+    get:
+      tags:
+        - Pendenze
+      summary: Dettaglio di una pendenza per identificativo
+      operationId: getPendenza
+      description: |
+        Acquisisce il dettaglio di una pendenza, comprensivo dei dati di pagamento.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      parameters:
+        - in: path
+          name: idA2A
+          description: Identificativo del gestionale
+          required: true
+          schema:
+            type: string
+            pattern: '(^[a-zA-Z0-9\-_]{1,35}$)'
+        - in: path
+          name: idPendenza
+          description: Identificativo della pendenza
+          required: true
+          schema:
+            type: string
+            pattern: '(^[a-zA-Z0-9\-_]{1,35}$)'
+      responses:
+        '200':
+          description: Informazioni dettagliate della pendenza
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pendenza'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /domini:
+    get:
+      tags:
+        - Anagrafica
+      summary: Elenco Enti Creditori
+      description: |
+        Restituisce l'elenco degli Enti Creditori
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getDomini
+      responses:
+        '200':
+          description: Elenco Enti Creditori
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaDomini'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /domini/{idDominio}:
+    get:
+      tags:
+        - Anagrafica
+      summary: Dettaglio Ente Creditore
+      description: |
+        Restituisce il dettaglio di un Ente Creditore
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getDominio
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+      responses:
+        '200':
+          description: Elenco tipi pendenza
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dominio'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /domini/{idDominio}/tipiPendenza:
+    get:
+      tags:
+        - Anagrafica
+      summary: Elenco tipi pendenza
+      description: |
+        Restituisce l'elenco dei tipi pendenza (servizi) disponibili per un dominio/creditore.
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getTipiPendenza
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+      responses:
+        '200':
+          description: Elenco tipi pendenza
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaTipiPendenza'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /domini/{idDominio}/tipiPendenza/{idTipoPendenza}:
+    get:
+      tags:
+        - Anagrafica
+      summary: Dettaglio Tipo pendenza
+      description: |
+        Restituisce il dettaglio di un tipo pendenza
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getTipoPendenza
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+        - $ref: '#/components/parameters/IdTipoPendenzaPath'
+      responses:
+        '200':
+          description: Dettaglio tipo pendenza
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TipoPendenza'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+
+  /pendenze/{idDominio}/{numeroAvviso}/avviso:
+    get:
+      tags:
+        - Pendenze
+      summary: Dettaglio avviso
+      description: |
+        Restituisce i dettagli di un avviso di pagamento.
+
+        Se viene specificato l'header `Accept: application/pdf`, restituisce il PDF dell'avviso.
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getAvviso
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+        - $ref: '#/components/parameters/NumeroAvvisoPath'
+        - $ref: '#/components/parameters/RecaptchaQuery'
+        - $ref: '#/components/parameters/IdDebitoreQuery'
+        - $ref: '#/components/parameters/UuidQuery'
+        - $ref: '#/components/parameters/LinguaSecondariaQuery'
+      responses:
+        '200':
+          description: Dettaglio avviso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avviso'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pendenze/{idDominio}/{numeroAvviso}/ricevuta:
+    get:
+      tags:
+        - Pendenze
+      summary: Download ricevuta PDF
+      description: |
+        Scarica la ricevuta telematica (RT) in formato PDF.
+
+        **Disponibilità**: Public + Autenticata
+      operationId: getRicevutaPDF
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+        - $ref: '#/components/parameters/NumeroAvvisoPath'
+      responses:
+        '200':
+          description: Ricevuta PDF
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="ricevuta.pdf"'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ricevuta'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pendenze/{idDominio}/{idTipoPendenza}:
+    post:
+      tags:
+        - Pendenze
+      summary: Crea nuova pendenza
+      description: |
+        Crea una nuova pendenza a partire dai dati del form compilato dall'utente.
+        La struttura del body dipende dalla definizione JSON Schema del tipo pendenza.
+
+        **Disponibilità**: Public + Autenticata
+      operationId: creaPendenza
+      parameters:
+        - $ref: '#/components/parameters/IdDominioPath'
+        - $ref: '#/components/parameters/IdTipoPendenzaPath'
+        - $ref: '#/components/parameters/IdA2AQuery'
+        - $ref: '#/components/parameters/IdPendenzaQuery'
+        - $ref: '#/components/parameters/RecaptchaQuery'
+      requestBody:
+        description: Dati del form (struttura dinamica basata su JSON Schema)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatiFormPendenza'
+      responses:
+        '200':
+          description: Pendenza creata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pendenza'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /ricevute:
+    get:
+      tags:
+        - Pendenze
+      summary: Elenco ricevute
+      description: |
+        Restituisce l'elenco delle ricevute dei pagamenti effettuati dall'utente autenticato.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: getRicevute
+      responses:
+        '200':
+          description: Elenco ricevute o Archivio ricevute
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="ricevute.zip"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaRicevute'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    CcpPath:
+      name: ccp
+      in: path
+      required: true
+      description: Codice Contesto Pagamento
+      schema:
+        type: string
+        example: 'CCP001'
+
+    IdA2AQuery:
+      name: idA2A
+      in: query
+      required: false
+      description: Identificativo dell'applicazione
+      schema:
+        type: string
+
+    IdDebitoreQuery:
+      name: idDebitore
+      in: query
+      description: Identificativo del soggetto debitore della pendenza
+      required: false
+      schema:
+        type: string
+      example: 'RSSMRA30A01H501I'
+
+    IdDominioPath:
+      name: idDominio
+      in: path
+      required: true
+      description: Identificativo del dominio/creditore (codice fiscale ente, 11 cifre)
+      schema:
+        type: string
+        pattern: '^\d{11}$'
+        example: '12345678901'
+
+    IdDominioQuery:
+      name: idDominio
+      in: query
+      required: false
+      description: Identificativo del dominio/creditore (codice fiscale ente, 11 cifre)
+      schema:
+        type: string
+        pattern: '^\d{11}$'
+        example: '12345678901'
+
+    IdPendenzaQuery:
+      name: idPendenza
+      in: query
+      required: false
+      description: Identificativo della pendenza
+      schema:
+        type: string
+
+    IdSessionPath:
+      name: idSession
+      in: path
+      required: true
+      description: Identificativo della sessione di pagamento
+      schema:
+        type: string
+        format: uuid
+        example: '550e8400-e29b-41d4-a716-446655440000'
+
+    IdTipoPendenzaPath:
+      name: idTipoPendenza
+      in: path
+      required: true
+      description: Identificativo del tipo pendenza
+      schema:
+        type: string
+        example: 'TASSA_RIFIUTI'
+
+    IuvPath:
+      name: iuv
+      in: path
+      required: true
+      description: Identificativo Univoco Versamento
+      schema:
+        type: string
+        example: '01000000000000001'
+
+    IuvQuery:
+      name: iuv
+      in: query
+      required: false
+      description: Identificativo Univoco Versamento
+      schema:
+        type: string
+        example: '01000000000000001'
+
+    LinguaSecondariaQuery:
+      name: linguaSecondaria
+      in: query
+      description: >-
+            Indica se creare l'avviso in modalita' multilingua e quale seconda lingua affiancare all'italiano all'interno dell'avviso
+      required: false
+      schema:
+        $ref: '#/components/schemas/LinguaSecondaria'
+
+    NumeroAvvisoPath:
+      name: numeroAvviso
+      in: path
+      required: true
+      description: Numero avviso di pagamento (18 cifre)
+      schema:
+        type: string
+        pattern: '^\d{18}$'
+        example: '301000000000000001'
+
+    RecaptchaQuery:
+      name: gRecaptchaResponse
+      in: query
+      required: false
+      description: Token Google reCAPTCHA V3
+      schema:
+        type: string
+        example: 03AOLTB...
+
+    StatoPendenzaQuery:
+      name: stato
+      in: query
+      required: false
+      description: Filtro per stato della pendenza
+      schema:
+        $ref: '#/components/schemas/StatoPendenza'
+
+    UuidQuery:
+      name: UUID
+      in: query
+      description: Identificativo univoco della pendenza
+      required: false
+      schema:
+        type: string
+        example: asd123sfksdprt3423fdsfs...
+
+
+  # ============================================================================
+  # RESPONSES (ordinati alfabeticamente)
+  # ============================================================================
+  responses:
+    BadRequest:
+      description: Richiesta non valida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    Forbidden:
+      description: Accesso negato / Sessione scaduta
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    GatewayTimeout:
+      description: Timeout del gateway
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    InternalServerError:
+      description: Errore interno del server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    NotFound:
+      description: Risorsa non trovata
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    Unauthorized:
+      description: Autenticazione richiesta
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+    UnprocessableEntity:
+      description: Dati non elaborabili
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errore'
+
+  # ============================================================================
+  # SCHEMAS (ordinati alfabeticamente)
+  # ============================================================================
+  schemas:
+    Avviso:
+      type: object
+      required:
+        - stato
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoAvviso"
+        importo:
+          type: number
+          format: double
+          description: Importo della pendenza associata all'avviso.
+          example: 10.01
+        idDominio:
+          type: string
+          description: Identificativo del creditore dell'avviso
+          example: '012345678901'
+        numeroAvviso:
+          type: string
+          description: Numero identificativo dell'avviso di pagamento
+          example: '00100000000000012'
+        dataValidita:
+          type: string
+          format: date
+          description: Data di validita dei dati dell'avviso, decorsa la quale l'importo può subire variazioni.
+          example: '2019-12-31'
+        dataScadenza:
+          type: string
+          format: date
+          description: Data di scadenza dell'avviso, decorsa la quale non è più pagabile.
+          example: '2020-12-31'
+        dataPagamento:
+          type: string
+          format: date
+          description: Data di pagamento dell'avviso.
+          example: '2020-12-31'
+        descrizione:
+          type: string
+          description: Descrizione da inserire nell'avviso di pagamento
+          example: 'Sanzione CdS n. abc00000'
+        tassonomiaAvviso:
+          $ref: '#/components/schemas/TassonomiaAvviso'
+        qrcode:
+          type: string
+          description: Testo da codificare nel qr-code dell'avviso
+        barcode:
+          type: string
+          description: Testo da codificare nel bar-code dell'avviso
+
+    Bollo:
+      description: Definisce i dati di un bollo telematico
+      type: object
+      required:
+        - tipoBollo
+        - hashDocumento
+        - provinciaResidenza
+      properties:
+        tipoBollo:
+          description: Tipologia di Bollo digitale
+          type: string
+          enum:
+            - Imposta di bollo
+        hashDocumento:
+          description: Digest in base64 del documento informatico associato alla marca da bollo
+          type: string
+          example: "--- base64 ---"
+          maxLength: 70
+        provinciaResidenza:
+          description: Sigla automobilistica della provincia di residenza del soggetto pagatore
+          type: string
+          example: "RO"
+          pattern: "[A-Z]{2,2}"
+
+    DatiFormPendenza:
+      type: object
+      description: |
+        Dati del form compilato dall'utente.
+        La struttura è dinamica e dipende dalla definizione JSON Schema del tipo pendenza.
+      additionalProperties: true
+      example:
+        codiceFiscale: 'RSSMRA80A01H501U'
+        nome: 'Mario'
+        cognome: 'Rossi'
+        importo: 150.50
+        annoRiferimento: 2024
+
+    Dominio:
+      type: object
+      properties:
+        idDominio:
+          type: string
+          description: Identificativo del dominio
+          example: '12345678901'
+        ragioneSociale:
+          type: string
+          description: Ragione sociale dell'ente
+          example: 'Comune di Roma'
+
+    Errore:
+      type: object
+      properties:
+        categoria:
+          type: string
+          description: Categoria dell'errore
+          example: 'RICHIESTA'
+        codice:
+          type: string
+          description: Codice dell'errore
+          example: 'SINTASSI'
+        descrizione:
+          type: string
+          description: Descrizione dell'errore
+          example: 'Richiesta non valida'
+        dettaglio:
+          type: string
+          description: Dettaglio dell'errore
+          example: 'Il campo idDominio è obbligatorio'
+
+    LinguaSecondaria:
+      example: 'false'
+      type: string
+      enum:
+        - 'false'
+        - 'de'
+        - 'en'
+        - 'fr'
+        - 'sl'
+
+    ListaDomini:
+      type: object
+      properties:
+        risultati:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dominio'
+
+    ListaPendenze:
+      type: object
+      properties:
+        risultati:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pendenza'
+
+    ListaRicevute:
+      type: object
+      properties:
+        risultati:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ricevuta'
+
+    ListaTipiPendenza:
+      type: object
+      properties:
+        risultati:
+          type: array
+          items:
+            $ref: '#/components/schemas/TipoPendenza'
+
+    MapEntry:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          description: chiave del metadata
+          minLength: 1
+          maxLength: 140
+        value:
+          type: string
+          description: valore del metadata
+          minLength: 1
+          maxLength: 140
+    Metadata:
+      type: object
+      description: Metadata Custom da inserire nella ricevuta di pagamento
+      properties:
+        mapEntries:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/MapEntry'
+
+    Pendenza:
+      type: object
+      required:
+        - idA2A
+        - idPendenza
+        - dominio
+        - stato
+        - causale
+        - soggettoPagatore
+        - importo
+        - dataCaricamento
+        - voci
+      properties:
+        idA2A:
+          type: string
+          description: Identificativo del gestionale responsabile della pendenza
+          example: A2A-12345
+        idPendenza:
+          type: string
+          description: Identificativo della pendenza nel gestionale responsabile
+          example: abcdef12345
+        idTipoPendenza:
+          type: string
+          description: Codice identificativo del tipo di pendenza
+          example: IMU
+        dominio:
+          $ref: '#/components/schemas/Dominio'
+        stato:
+          $ref: '#/components/schemas/StatoPendenza'
+        iuv:
+          type: string
+          description: Iuv avviso, assegnato se pagabile da psp
+          example: "000000000012345"
+        dataPagamento:
+          type: string
+          format: date
+          description: Data di pagamento della pendenza
+          example: '2018-12-31'
+        causale:
+          type: string
+          description: Descrizione da inserire nell'avviso di pagamento
+          example: 'Sanzione CdS n. abc00000'
+          maxLength: 140
+        soggettoPagatore:
+          $ref: '#/components/schemas/Soggetto'
+        importo:
+          type: number
+          format: double
+          description: Importo della pendenza. Deve corrispondere alla somma delle singole voci.
+          example: 10.01
+          minimum: 0.00
+          maximum: 9999999999999999.99
+        numeroAvviso:
+          type: string
+          description: Identificativo univoco versamento, assegnato se pagabile da psp
+          example: '123456789012345678'
+          pattern: "[0-9]{18}"
+        dataCaricamento:
+          type: string
+          format: date
+          description: Data di emissione della pendenza
+          example: '2010-12-31'
+        dataValidita:
+          type: string
+          format: date
+          description: Data di validita dei dati della pendenza, decorsa la quale la pendenza può subire variazioni.
+          example: '2019-12-31'
+        dataScadenza:
+          type: string
+          format: date
+          description: Data di scadenza della pendenza, decorsa la quale non è più pagabile.
+          example: '2020-12-31'
+        annoRiferimento:
+          type: integer
+          format: int32
+          description: Anno di riferimento della pendenza
+          example: 2020
+        UUID:
+          type: string
+          description: Parametro di randomizzazione delle URL di pagamento statiche
+        voci:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/VocePendenza'
+
+    Profilo:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome o principal dell'utenza
+        anagrafica:
+          $ref: '#/components/schemas/Soggetto'
+
+    Ricevuta:
+      type: object
+      required:
+        - dominio
+        - iuv
+        - idRicevuta
+        - importo
+        - data
+      properties:
+        dominio:
+          $ref: '#/components/schemas/Dominio'
+        iuv:
+          type: string
+          description: Identificativo univoco di versamento
+          example: RF23567483937849450550875
+        idRicevuta:
+          type: string
+          description: Corrisponde al `receiptId` oppure al `ccp` a seconda del modello di pagamento
+          example: ab12345
+        importo:
+          type: number
+          description: Importo della transazione di pagamento.
+          example: 10.01
+        data:
+          type: string
+          format: date-time
+          description: Data di acquisizione della ricevuta
+          example: '2020-12-31'
+        dataPagamento:
+          type: string
+          format: date-time
+          description: Data di esecuzione del pagamento
+          example: '2020-12-31'
+        istitutoAttestante:
+          type: object
+          description: PSP che ha gestito la transazione di pagamento ed emesso la ricevuta
+
+    Soggetto:
+      type: object
+      required:
+        - tipo
+        - identificativo
+      properties:
+        tipo:
+          $ref: "#/components/schemas/TipoSoggetto"
+        identificativo:
+          type: string
+          description: Codice fiscale dell'utente
+          example: 'RSSMRA80A01H501U'
+        anagrafica:
+          type: string
+          description: Nome e cognome dell'utente
+          example: 'Mario Rossi'
+        indirizzo:
+          type: string
+          example: Piazza della Vittoria
+          minLength: 1
+          maxLength: 70
+        civico:
+          type: string
+          example: 10/A
+          minLength: 1
+          maxLength: 16
+        cap:
+          type: string
+          example: '00000'
+          minLength: 1
+          maxLength: 16
+        localita:
+          type: string
+          example: Roma
+          minLength: 1
+          maxLength: 35
+        provincia:
+          type: string
+          example: Roma
+          minLength: 1
+          maxLength: 35
+        nazione:
+          type: string
+          example: IT
+          pattern: "[A-Z]{2,2}"
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+          example: mario.rossi@email.it
+          pattern: "[A-Za-z0-9_]+([\\-\\+\\.'][A-Za-z0-9_]+)*@[A-Za-z0-9_]+([\\-\\.][A-Za-z0-9_]+)*\\.[A-Za-z0-9_]+([\\-\\.][A-Za-z0-9_]+)*"
+        cellulare:
+          type: string
+          example: '+39 000-1234567'
+          pattern: "\\+[0-9]{2,2}\\s[0-9]{3,3}\\-[0-9]{7,7}"
+    StatoAvviso:
+      description: Stato dell'avviso
+      example: NON_ESEGUITA
+      type: string
+      enum:
+        - DUPLICATA
+        - NON_ESEGUITA
+        - ANNULLATA
+        - SCONOSCIUTA
+        - SCADUTA
+    StatoPendenza:
+      example: NON_ESEGUITA
+      type: string
+      enum:
+        - ESEGUITA
+        - NON_ESEGUITA
+        - ESEGUITA_PARZIALE
+        - ANNULLATA
+        - SCADUTA
+        - ANOMALA
+    TassonomiaAvviso:
+      description: Macro categoria della pendenza Agid
+      type: string
+      enum:
+        - Cartelle esattoriali
+        - Diritti e concessioni
+        - Imposte e tasse
+        - IMU, TASI e altre tasse comunali
+        - Ingressi a mostre e musei
+        - Multe e sanzioni amministrative
+        - Previdenza e infortuni
+        - Servizi erogati dal comune
+        - Servizi erogati da altri enti
+        - Servizi scolastici
+        - Tassa automobilistica
+        - Ticket e prestazioni sanitarie
+        - Trasporti, mobilità e parcheggi
+      example:
+        Ticket e prestazioni sanitarie
+    TipoPendenza:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/TipoPendenzaIndex'
+        - type: object
+          required:
+           - tipo
+          properties:
+            form:
+              $ref: '#/components/schemas/TipoPendenzaForm'
+            visualizzazione:
+              type: object
+              description: Definisce come visualizzare la pendenza
+    TipoPendenzaForm:
+      type: object
+      required:
+        - tipo
+        - definizione
+      properties:
+        tipo:
+          type: string
+          description: Indica il linguaggio da utilizzare per il disegno della form di inserimento della pendenza
+          example: 'AngularJS v6'
+        definizione:
+          type: object
+          description: Definizione della form nel linguaggio indicato nel field tipo
+        impaginazione:
+          type: object
+          description: Definizione dell'impaginazione della pagina di pagamento del portale
+    TipoPendenzaIndex:
+      type: object
+      required:
+        - idTipoPendenza
+        - descrizione
+      properties:
+        idTipoPendenza:
+          type: string
+          description: Identificativo del tipo pendenza
+          example: 'TASSA_RIFIUTI'
+        descrizione:
+          type: string
+          description: Descrizione del servizio
+          example: 'Tassa sui rifiuti'
+    TipoSoggetto:
+      description: >-
+        tipologia di soggetto, se persona fisica (F) o giuridica
+        (G)
+      type: string
+      enum:
+        - G
+        - F
+      example: F
+    VocePendenza:
+      type: object
+      required:
+      - idVocePendenza
+      - importo
+      - descrizione
+      - indice
+      properties:
+        idVocePendenza:
+          type: string
+          description: Identificativo della voce di pendenza nel gestionale proprietario
+          example: abcdef12345_1
+          minLength: 1
+          maxLength: 35
+        importo:
+          type: number
+          format: double
+          description: Importo della voce
+          example: 10.01
+          minimum: 0.00
+          maximum: 9999999999999999.99
+        descrizione:
+          type: string
+          description: descrizione della voce di pagamento
+          example: Sanzione CdS n. abc00000
+          minLength: 1
+          maxLength: 140
+        indice:
+          type: integer
+          format: int32
+          description: indice di voce all'interno della pendenza
+          example: 1
+          minimum: 1
+          maximum: 5
+        dominio:
+          $ref: '#/components/schemas/Dominio'
+        tassonomiaPagoPA:
+          type: string
+        bollo:
+          $ref: '#/components/schemas/Bollo'
+        metadata:
+          $ref: '#/components/schemas/Metadata'
