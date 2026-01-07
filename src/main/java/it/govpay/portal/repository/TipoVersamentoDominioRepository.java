@@ -15,6 +15,9 @@ public interface TipoVersamentoDominioRepository extends JpaRepository<TipoVersa
 
     List<TipoVersamentoDominio> findByDominioIdAndAbilitato(Long idDominio, Boolean abilitato);
 
+    List<TipoVersamentoDominio> findByDominioIdAndAbilitatoAndPagAbilitato(
+            Long idDominio, Boolean abilitato, Boolean pagAbilitato);
+
     Optional<TipoVersamentoDominio> findByDominioIdAndTipoVersamentoId(Long idDominio, Long idTipoVersamento);
 
     Optional<TipoVersamentoDominio> findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(

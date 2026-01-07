@@ -9,44 +9,53 @@ import it.govpay.portal.model.ListaDomini;
 import it.govpay.portal.model.ListaTipiPendenza;
 import it.govpay.portal.model.Profilo;
 import it.govpay.portal.model.TipoPendenza;
+import it.govpay.portal.service.AnagraficaService;
 
 @RestController
 public class AnagraficaController implements AnagraficaApi {
 
+    private final AnagraficaService anagraficaService;
+
+    public AnagraficaController(AnagraficaService anagraficaService) {
+        this.anagraficaService = anagraficaService;
+    }
+
     @Override
     public ResponseEntity<Profilo> getProfilo() {
-        // TODO: implementare la logica
-        return ResponseEntity.ok(new Profilo());
+        Profilo profilo = anagraficaService.getProfilo();
+        return ResponseEntity.ok(profilo);
     }
 
     @Override
     public ResponseEntity<Void> logout() {
-        // TODO: implementare la logica di logout
+        anagraficaService.logout();
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<ListaDomini> getDomini() {
-        // TODO: implementare la logica
-        return ResponseEntity.ok(new ListaDomini());
+        ListaDomini result = anagraficaService.getDomini();
+        return ResponseEntity.ok(result);
     }
 
     @Override
     public ResponseEntity<Dominio> getDominio(String idDominio) {
-        // TODO: implementare la logica
-        return ResponseEntity.ok(new Dominio());
+        return anagraficaService.getDominio(idDominio)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Override
     public ResponseEntity<ListaTipiPendenza> getTipiPendenza(String idDominio) {
-        // TODO: implementare la logica
-        return ResponseEntity.ok(new ListaTipiPendenza());
+        ListaTipiPendenza result = anagraficaService.getTipiPendenza(idDominio);
+        return ResponseEntity.ok(result);
     }
 
     @Override
     public ResponseEntity<TipoPendenza> getTipoPendenza(String idDominio, String idTipoPendenza) {
-        // TODO: implementare la logica
-        return ResponseEntity.ok(new TipoPendenza());
+        return anagraficaService.getTipoPendenza(idDominio, idTipoPendenza)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }
