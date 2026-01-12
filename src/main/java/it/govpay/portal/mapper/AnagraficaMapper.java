@@ -19,6 +19,8 @@ public class AnagraficaMapper {
         this.objectMapper = objectMapper;
     }
 
+    private static final String COD_UO_ENTE_CREDITORE = "EC";
+
     public Dominio toDominio(it.govpay.portal.entity.Dominio entity) {
         if (entity == null) {
             return null;
@@ -27,6 +29,24 @@ public class AnagraficaMapper {
         Dominio dominio = new Dominio();
         dominio.setIdDominio(entity.getCodDominio());
         dominio.setRagioneSociale(entity.getRagioneSociale());
+        dominio.setCbill(entity.getCbill());
+
+        entity.getUnitaOrganizzative().stream()
+                .filter(uo -> COD_UO_ENTE_CREDITORE.equals(uo.getCodUo()))
+                .findFirst()
+                .ifPresent(uo -> {
+                    dominio.setIndirizzo(uo.getUoIndirizzo());
+                    dominio.setCivico(uo.getUoCivico());
+                    dominio.setCap(uo.getUoCap());
+                    dominio.setLocalita(uo.getUoLocalita());
+                    dominio.setProvincia(uo.getUoProvincia());
+                    dominio.setNazione(uo.getUoNazione());
+                    dominio.setEmail(uo.getUoEmail());
+                    dominio.setPec(uo.getUoPec());
+                    dominio.setTel(uo.getUoTel());
+                    dominio.setFax(uo.getUoFax());
+                    dominio.setWeb(uo.getUoUrlSitoWeb());
+                });
 
         return dominio;
     }

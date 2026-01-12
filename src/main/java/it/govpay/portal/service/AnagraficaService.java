@@ -4,16 +4,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.mapper.AnagraficaMapper;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.ListaDomini;
 import it.govpay.portal.model.ListaTipiPendenza;
 import it.govpay.portal.model.Profilo;
+import it.govpay.portal.model.Soggetto;
 import it.govpay.portal.model.TipoPendenza;
+import it.govpay.portal.model.TipoSoggetto;
+import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.portal.repository.DominioRepository;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
 
@@ -22,23 +28,41 @@ import it.govpay.portal.repository.TipoVersamentoDominioRepository;
 public class AnagraficaService {
 
     private final DominioRepository dominioRepository;
+    private final DominioLogoRepository dominioLogoRepository;
     private final TipoVersamentoDominioRepository tipoVersamentoDominioRepository;
     private final AnagraficaMapper anagraficaMapper;
 
     public AnagraficaService(
             DominioRepository dominioRepository,
+            DominioLogoRepository dominioLogoRepository,
             TipoVersamentoDominioRepository tipoVersamentoDominioRepository,
             AnagraficaMapper anagraficaMapper) {
         this.dominioRepository = dominioRepository;
+        this.dominioLogoRepository = dominioLogoRepository;
         this.tipoVersamentoDominioRepository = tipoVersamentoDominioRepository;
         this.anagraficaMapper = anagraficaMapper;
     }
 
     public Profilo getProfilo() {
-        // TODO: integrare con Spring Security per ottenere l'utente autenticato
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        SpidUserDetails spidUser = (SpidUserDetails) authentication.getPrincipal();
+
         Profilo profilo = new Profilo();
-        profilo.setNome("Utente Anonimo");
+        profilo.setNome(spidUser.getFiscalNumber());
+        profilo.setAnagrafica(popolaAnagraficaCittadino(spidUser));
+
         return profilo;
+    }
+
+    private Soggetto popolaAnagraficaCittadino(SpidUserDetails spidUser) {
+        Soggetto anagrafica = new Soggetto();
+        anagrafica.setTipo(TipoSoggetto.F);
+        anagrafica.setIdentificativo(spidUser.getFiscalNumber());
+        anagrafica.setAnagrafica(spidUser.getFullName());
+        anagrafica.setEmail(spidUser.getEmail());
+        anagrafica.setCellulare(spidUser.getMobilePhone());
+        anagrafica.setIndirizzo(spidUser.getAddress());
+        return anagrafica;
     }
 
     public void logout() {
@@ -87,6 +111,10 @@ public class AnagraficaService {
         return tipoVersamentoDominioRepository
                 .findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(idDominio, idTipoPendenza)
                 .map(anagraficaMapper::toTipoPendenza);
+    }
+
+    public Optional<byte[]> getLogo(String idDominio) {
+        return this.dominioLogoRepository.findLogoByCodDominio(idDominio);
     }
 
 }
