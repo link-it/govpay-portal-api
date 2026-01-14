@@ -7,6 +7,8 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -62,8 +64,9 @@ public class Versamento {
     @Column(name = "importo_totale")
     private Double importoTotale;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "stato_versamento", length = 35)
-    private String statoVersamento;
+    private StatoVersamento statoVersamento;
 
     @Column(name = "descrizione_stato", length = 255)
     private String descrizioneStato;
@@ -179,8 +182,9 @@ public class Versamento {
     @Column(name = "importo_incassato")
     private Double importoIncassato;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "stato_pagamento", length = 35)
-    private String statoPagamento;
+    private StatoPagamento statoPagamento;
 
     @Column(name = "iuv_pagamento", length = 35)
     private String iuvPagamento;

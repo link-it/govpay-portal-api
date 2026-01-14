@@ -12,15 +12,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
+import it.govpay.portal.repository.VersamentoRepository;
+import it.govpay.portal.security.hardening.matcher.AvvisiRequestMatcher;
+import it.govpay.portal.security.hardening.matcher.HardeningRequestMatcher;
+import it.govpay.portal.service.ConfigurazioneService;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
     private final SecurityProperties securityProperties;
+    private final ConfigurazioneService configurazioneService;
+    private final VersamentoRepository versamentoRepository;
 
-    public SecurityConfig(SecurityProperties securityProperties) {
+    public SecurityConfig(SecurityProperties securityProperties,
+            ConfigurazioneService configurazioneService,
+            VersamentoRepository versamentoRepository) {
         this.securityProperties = securityProperties;
+        this.configurazioneService = configurazioneService;
+        this.versamentoRepository = versamentoRepository;
     }
 
     @Bean
@@ -34,6 +45,26 @@ public class SecurityConfig {
     @Bean
     public HeaderAuthenticationFilter headerAuthenticationFilter() {
         return new HeaderAuthenticationFilter(securityProperties.getSpidHeaders());
+    }
+
+    /**
+     * RequestMatcher per la creazione pendenza spontanea con controllo ReCaptcha.
+     * Se l'utente è autenticato, il controllo viene bypassato.
+     */
+    @Bean
+    public HardeningRequestMatcher pendenzaSpontaneaRequestMatcher() {
+        return new HardeningRequestMatcher("/pendenze/*/*", HttpMethod.POST, configurazioneService);
+    }
+
+    /**
+     * RequestMatcher per l'avviso di pagamento con controlli hardening.
+     * Verifica UUID, ReCaptcha e sessione per i PDF.
+     * Se l'utente è autenticato, i controlli vengono bypassati.
+     */
+    @Bean
+    public AvvisiRequestMatcher avvisoRequestMatcher() {
+        return new AvvisiRequestMatcher("/pendenze/*/*/avviso", HttpMethod.GET,
+                configurazioneService, versamentoRepository);
     }
 
     @Bean
@@ -59,7 +90,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/pendenze/{idDominio}/{numeroAvviso}").authenticated()
 
                 // ==========================================
-                // Endpoint PUBLIC + AUTENTICATI
+                // Endpoint PUBLIC + AUTENTICATI con HARDENING
+                // ==========================================
+                // Creazione pendenza spontanea (ReCaptcha per anonimi)
+                .requestMatchers(pendenzaSpontaneaRequestMatcher()).permitAll()
+                // Avviso di pagamento (UUID + ReCaptcha + session per anonimi)
+                .requestMatchers(avvisoRequestMatcher()).permitAll()
+
+                // ==========================================
+                // Endpoint PUBLIC + AUTENTICATI (senza hardening)
                 // ==========================================
                 // Domini (anagrafica)
                 .requestMatchers(HttpMethod.GET, "/domini").permitAll()
@@ -67,10 +106,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/domini/{idDominio}/logo").permitAll()
                 .requestMatchers(HttpMethod.GET, "/domini/{idDominio}/tipiPendenza").permitAll()
                 .requestMatchers(HttpMethod.GET, "/domini/{idDominio}/tipiPendenza/{idTipoPendenza}").permitAll()
-                // Creazione pendenza spontanea (con reCAPTCHA lato applicativo)
-                .requestMatchers(HttpMethod.POST, "/pendenze/{idDominio}/{idTipoPendenza}").permitAll()
-                // Avviso di pagamento
-                .requestMatchers(HttpMethod.GET, "/pendenze/{idDominio}/{numeroAvviso}/avviso").permitAll()
                 // Ricevuta PDF
                 .requestMatchers(HttpMethod.GET, "/pendenze/{idDominio}/{numeroAvviso}/ricevuta").permitAll()
 

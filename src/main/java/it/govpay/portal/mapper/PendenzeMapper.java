@@ -3,11 +3,11 @@ package it.govpay.portal.mapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
 import it.govpay.portal.entity.SingoloVersamento;
+import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.model.Avviso;
 import it.govpay.portal.model.Dominio;
@@ -75,8 +75,7 @@ public class PendenzeMapper {
         pendenza.setSoggettoPagatore(mapSoggettoPagatore(entity));
 
         List<VocePendenza> voci = entity.getSingoliVersamenti().stream()
-                .map(this::toVocePendenza)
-                .collect(Collectors.toList());
+                .map(this::toVocePendenza).toList();
         pendenza.setVoci(voci);
 
         return pendenza;
@@ -105,17 +104,17 @@ public class PendenzeMapper {
         return soggetto;
     }
 
-    private StatoPendenza mapStatoVersamento(String statoVersamento) {
+    private StatoPendenza mapStatoVersamento(StatoVersamento statoVersamento) {
         if (statoVersamento == null) {
             return null;
         }
         return switch (statoVersamento) {
-            case "ESEGUITO" -> StatoPendenza.ESEGUITA;
-            case "NON_ESEGUITO" -> StatoPendenza.NON_ESEGUITA;
-            case "PARZIALMENTE_ESEGUITO" -> StatoPendenza.ESEGUITA_PARZIALE;
-            case "ANNULLATO" -> StatoPendenza.ANNULLATA;
-            case "INCASSATO" -> StatoPendenza.ESEGUITA;
-            case "ANOMALO" -> StatoPendenza.ANOMALA;
+            case ESEGUITO -> StatoPendenza.ESEGUITA;
+            case NON_ESEGUITO -> StatoPendenza.NON_ESEGUITA;
+            case PARZIALMENTE_ESEGUITO -> StatoPendenza.ESEGUITA_PARZIALE;
+            case ANNULLATO -> StatoPendenza.ANNULLATA;
+            case INCASSATO -> StatoPendenza.ESEGUITA;
+            case ANOMALO -> StatoPendenza.ANOMALA;
             default -> StatoPendenza.NON_ESEGUITA;
         };
     }
@@ -180,20 +179,26 @@ public class PendenzeMapper {
         		dominio.getStazione().getApplicationCode(), versamento.getIuvVersamento(), importo, numeroAvviso));
 
 
-        StatoAvviso statoPendenza = null;
-        String statoVersamento = versamento.getStatoVersamento();
+        StatoAvviso statoPendenza = getStatoPendenza(versamento);
+
+        rsModel.setStato(statoPendenza);
+
+        return rsModel;
+    }
+
+	private StatoAvviso getStatoPendenza(Versamento versamento) {
+		StatoAvviso statoPendenza = null;
+        StatoVersamento statoVersamento = versamento.getStatoVersamento();
 
         if (statoVersamento != null) {
             switch (statoVersamento) {
-                case "ANNULLATO":
+                case ANNULLATO:
                     statoPendenza = StatoAvviso.ANNULLATA;
                     break;
-                case "ESEGUITO":
-                case "ESEGUITO_ALTRO_CANALE":
-                case "PARZIALMENTE_ESEGUITO":
+                case ESEGUITO, ESEGUITO_ALTRO_CANALE, PARZIALMENTE_ESEGUITO:
                     statoPendenza = StatoAvviso.DUPLICATA;
                     break;
-                case "NON_ESEGUITO":
+                case NON_ESEGUITO:
                     if (versamento.getDataScadenza() != null &&
                             versamento.getDataScadenza().toLocalDate().isBefore(LocalDate.now())) {
                         statoPendenza = StatoAvviso.SCADUTA;
@@ -208,10 +213,7 @@ public class PendenzeMapper {
         } else {
             statoPendenza = StatoAvviso.SCONOSCIUTA;
         }
-
-        rsModel.setStato(statoPendenza);
-
-        return rsModel;
-    }
+		return statoPendenza;
+	}
 
 }

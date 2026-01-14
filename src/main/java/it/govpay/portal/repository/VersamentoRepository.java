@@ -31,4 +31,9 @@ public interface VersamentoRepository extends JpaRepository<Versamento, Long>, J
     List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
             String codDominio, String debitoreIdentificativo, String statoVersamento);
 
+    Optional<Versamento> findByDominioCodDominioAndNumeroAvvisoAndIdSessione(
+            String codDominio, String numeroAvviso, String idSessione);
+
+    Optional<Versamento> findByDominioCodDominioAndIuvVersamentoAndIdSessione(
+            String codDominio, String iuvVersamento, String idSessione);
 }

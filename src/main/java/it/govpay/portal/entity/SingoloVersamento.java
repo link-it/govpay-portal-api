@@ -2,6 +2,8 @@ package it.govpay.portal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,8 +32,9 @@ public class SingoloVersamento {
     @Column(name = "cod_singolo_versamento_ente", length = 70)
     private String codSingoloVersamentoEnte;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "stato_singolo_versamento", length = 35)
-    private String statoSingoloVersamento;
+    private StatoSingoloVersamento statoSingoloVersamento;
 
     @Column(name = "importo_singolo_versamento")
     private Double importoSingoloVersamento;
