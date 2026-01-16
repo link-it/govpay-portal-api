@@ -203,6 +203,28 @@
                             </configOptions>
                         </configuration>
                     </execution>
+                    <!-- Generazione Client GovPay Stampe API -->
+                    <execution>
+                        <id>generate-govpay-stampe-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/govpay-stampe.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <apiPackage>it.govpay.stampe.client.api</apiPackage>
+                            <modelPackage>it.govpay.stampe.client.model</modelPackage>
+                            <invokerPackage>it.govpay.stampe.client</invokerPackage>
+                            <output>${project.build.directory}/generated-sources/govpay-stampe-client</output>
+                            <configOptions>
+                                <library>resttemplate</library>
+                                <useJakartaEe>true</useJakartaEe>
+                                <openApiNullable>true</openApiNullable>
+                                <serializableModel>true</serializableModel>
+                                <dateLibrary>java8</dateLibrary>
+                            </configOptions>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -222,6 +244,7 @@
                             <sources>
                                 <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
                                 <source>${project.build.directory}/generated-sources/govpay-pendenze-client/src/main/java</source>
+                                <source>${project.build.directory}/generated-sources/govpay-stampe-client/src/main/java</source>
                             </sources>
                         </configuration>
                     </execution>

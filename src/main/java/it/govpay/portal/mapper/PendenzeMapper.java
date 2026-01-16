@@ -2,6 +2,9 @@ package it.govpay.portal.mapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -12,12 +15,14 @@ import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.model.Avviso;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.Pendenza;
+import it.govpay.portal.model.Ricevuta;
 import it.govpay.portal.model.Soggetto;
 import it.govpay.portal.model.StatoAvviso;
 import it.govpay.portal.model.StatoPendenza;
 import it.govpay.portal.model.TassonomiaAvviso;
 import it.govpay.portal.model.TipoSoggetto;
 import it.govpay.portal.model.VocePendenza;
+import it.govpay.portal.model.VoceRicevuta;
 import it.govpay.portal.util.IuvUtils;
 
 @Component
@@ -215,5 +220,73 @@ public class PendenzeMapper {
         }
 		return statoPendenza;
 	}
+
+    public Ricevuta toRicevuta(Versamento versamento) {
+        if (versamento == null) {
+            return null;
+        }
+
+        Ricevuta ricevuta = new Ricevuta();
+
+        ricevuta.setOggettoDelPagamento(versamento.getCausaleVersamento());
+
+        if (versamento.getDominio() != null) {
+            Dominio dominio = new Dominio();
+            dominio.setIdDominio(versamento.getDominio().getCodDominio());
+            dominio.setRagioneSociale(versamento.getDominio().getRagioneSociale());
+            ricevuta.setDominio(dominio);
+        }
+
+        ricevuta.setSoggetto(mapSoggettoPagatore(versamento));
+        ricevuta.setIstitutoAttestante("N/D"); // TODO: da recuperare dal pagamento
+        ricevuta.setImportoTotale(versamento.getImportoTotale() != null ?
+                versamento.getImportoTotale().doubleValue() : 0.0);
+
+        if (versamento.getDataPagamento() != null) {
+            ricevuta.setDataOperazione(versamento.getDataPagamento().atOffset(ZoneOffset.UTC));
+            ricevuta.setDataApplicativa(versamento.getDataPagamento().toLocalDate());
+        }
+
+        ricevuta.setStato(mapStatoRicevuta(versamento.getStatoVersamento()));
+        ricevuta.setIuv(versamento.getIuvVersamento());
+        ricevuta.setIdRicevuta(versamento.getIdSessione());
+
+        List<VoceRicevuta> voci = new ArrayList<>();
+        if (versamento.getSingoliVersamenti() != null) {
+            for (SingoloVersamento sv : versamento.getSingoliVersamenti()) {
+                VoceRicevuta voce = new VoceRicevuta();
+                voce.setDescrizione(sv.getDescrizione() != null ? sv.getDescrizione() : "Voce di pagamento");
+                voce.setIdRiscossione(String.valueOf(sv.getIndiceDati() != null ? sv.getIndiceDati() : 1));
+                voce.setImporto(sv.getImportoSingoloVersamento() != null ?
+                        sv.getImportoSingoloVersamento().doubleValue() : 0.0);
+                voce.setStato("ESEGUITO");
+                voci.add(voce);
+            }
+        }
+        if (voci.isEmpty()) {
+            VoceRicevuta voce = new VoceRicevuta();
+            voce.setDescrizione(versamento.getCausaleVersamento() != null ?
+                    versamento.getCausaleVersamento() : "Pagamento");
+            voce.setIdRiscossione("1");
+            voce.setImporto(versamento.getImportoTotale() != null ?
+                    versamento.getImportoTotale().doubleValue() : 0.0);
+            voce.setStato("ESEGUITO");
+            voci.add(voce);
+        }
+        ricevuta.setElencoVoci(voci);
+
+        return ricevuta;
+    }
+
+    private String mapStatoRicevuta(StatoVersamento stato) {
+        if (stato == null) return "SCONOSCIUTO";
+        return switch (stato) {
+            case ESEGUITO, INCASSATO, ESEGUITO_ALTRO_CANALE, ESEGUITO_SENZA_RPT -> "ESEGUITO";
+            case PARZIALMENTE_ESEGUITO -> "PARZIALMENTE_ESEGUITO";
+            case NON_ESEGUITO -> "NON_ESEGUITO";
+            case ANNULLATO -> "ANNULLATO";
+            case ANOMALO -> "ANOMALO";
+        };
+    }
 
 }

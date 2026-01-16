@@ -14,6 +14,7 @@ import it.govpay.portal.mapper.PendenzeMapper;
 import it.govpay.portal.model.Avviso;
 import it.govpay.portal.model.ListaPendenze;
 import it.govpay.portal.model.Pendenza;
+import it.govpay.portal.model.Ricevuta;
 import it.govpay.portal.model.StatoPendenza;
 import it.govpay.portal.repository.VersamentoRepository;
 
@@ -66,6 +67,11 @@ public class PendenzeService {
     public Optional<Avviso> getAvviso(String idDominio, String numeroAvviso) {
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
                 .map(versamento -> pendenzeMapper.toAvviso(versamento, versamento.getDominio()));
+    }
+
+    public Optional<Ricevuta> getRicevuta(String idDominio, String numeroAvviso) {
+        return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
+                .map(pendenzeMapper::toRicevuta);
     }
 
     private String mapStatoPendenzaToStatoVersamento(StatoPendenza stato) {
