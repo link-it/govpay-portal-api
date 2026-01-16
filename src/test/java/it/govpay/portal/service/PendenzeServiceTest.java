@@ -24,6 +24,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.Dominio;
+import it.govpay.portal.entity.SingoloVersamento;
+import it.govpay.portal.entity.StatoPagamento;
+import it.govpay.portal.entity.StatoSingoloVersamento;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.mapper.PendenzeMapper;
@@ -32,6 +35,8 @@ import it.govpay.portal.model.ListaPendenze;
 import it.govpay.portal.model.Pendenza;
 import it.govpay.portal.model.Ricevuta;
 import it.govpay.portal.model.StatoPendenza;
+import it.govpay.portal.model.VocePendenza;
+import it.govpay.portal.model.VoceRicevuta;
 import it.govpay.portal.repository.VersamentoRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +55,8 @@ class PendenzeServiceTest {
     private Versamento versamento;
     private SpidUserDetails spidUser;
 
+    private SingoloVersamento singoloVersamento;
+
     @BeforeEach
     void setUp() {
         dominio = Dominio.builder()
@@ -58,9 +65,20 @@ class PendenzeServiceTest {
                 .ragioneSociale("Comune di Test")
                 .build();
 
+        singoloVersamento = SingoloVersamento.builder()
+                .id(1L)
+                .codSingoloVersamentoEnte("SV001")
+                .statoSingoloVersamento(StatoSingoloVersamento.NON_ESEGUITO)
+                .importoSingoloVersamento(150.50)
+                .descrizione("Quota fissa TARI 2024")
+                .indiceDati(1)
+                .dominio(dominio)
+                .build();
+
         versamento = Versamento.builder()
                 .id(1L)
                 .dominio(dominio)
+                .codVersamentoEnte("VER001")
                 .numeroAvviso("123456789012345678")
                 .iuvVersamento("01234567890123456")
                 .importoTotale(150.50)
@@ -68,8 +86,20 @@ class PendenzeServiceTest {
                 .debitoreAnagrafica("Mario Rossi")
                 .statoVersamento(StatoVersamento.NON_ESEGUITO)
                 .causaleVersamento("Pagamento TARI 2024")
-                .singoliVersamenti(new ArrayList<>())
+                .aggiornabile(true)
+                .dataCreazione(LocalDateTime.now())
+                .dataOraUltimoAggiornamento(LocalDateTime.now())
+                .ack(false)
+                .anomalo(false)
+                .importoPagato(0.0)
+                .importoIncassato(0.0)
+                .statoPagamento(StatoPagamento.NON_PAGATO)
+                .srcDebitoreIdentificativo("RSSMRA80A01H501U")
+                .tipo("SPONTANEO")
+                .singoliVersamenti(List.of(singoloVersamento))
                 .build();
+
+        singoloVersamento.setVersamento(versamento);
 
         spidUser = new SpidUserDetails(
                 "RSSMRA80A01H501U",
@@ -92,13 +122,20 @@ class PendenzeServiceTest {
     class GetPendenzeTests {
 
         @Test
-        @DisplayName("Dovrebbe restituire lista di pendenze senza filtro stato")
-        void shouldReturnPendenzeWithoutStateFilter() {
+        @DisplayName("Dovrebbe restituire lista di pendenze con voci senza filtro stato")
+        void shouldReturnPendenzeWithVociWithoutStateFilter() {
             setupSecurityContext();
+
+            VocePendenza vocePendenza = new VocePendenza();
+            vocePendenza.setIdVocePendenza("SV001");
+            vocePendenza.setDescrizione("Quota fissa TARI 2024");
+            vocePendenza.setImporto(150.50);
+            vocePendenza.setIndice(1);
 
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setNumeroAvviso("123456789012345678");
             pendenzaModel.setImporto(150.50);
+            pendenzaModel.setVoci(List.of(vocePendenza));
 
             when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
                     "12345678901", "RSSMRA80A01H501U"))
@@ -110,7 +147,17 @@ class PendenzeServiceTest {
             assertNotNull(result);
             assertNotNull(result.getRisultati());
             assertEquals(1, result.getRisultati().size());
-            assertEquals("123456789012345678", result.getRisultati().get(0).getNumeroAvviso());
+
+            Pendenza pendenza = result.getRisultati().get(0);
+            assertEquals("123456789012345678", pendenza.getNumeroAvviso());
+
+            // Verifica che ci sia almeno una voce
+            assertNotNull(pendenza.getVoci());
+            assertFalse(pendenza.getVoci().isEmpty());
+            assertEquals(1, pendenza.getVoci().size());
+            assertEquals("SV001", pendenza.getVoci().get(0).getIdVocePendenza());
+            assertEquals("Quota fissa TARI 2024", pendenza.getVoci().get(0).getDescrizione());
+            assertEquals(150.50, pendenza.getVoci().get(0).getImporto());
 
             verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativo(
                     "12345678901", "RSSMRA80A01H501U");
@@ -185,12 +232,19 @@ class PendenzeServiceTest {
     class GetPendenzaTests {
 
         @Test
-        @DisplayName("Dovrebbe restituire pendenza quando trovata e appartiene all'utente")
-        void shouldReturnPendenzaWhenFoundAndBelongsToUser() {
+        @DisplayName("Dovrebbe restituire pendenza con voci quando trovata e appartiene all'utente")
+        void shouldReturnPendenzaWithVociWhenFoundAndBelongsToUser() {
             setupSecurityContext();
+
+            VocePendenza vocePendenza = new VocePendenza();
+            vocePendenza.setIdVocePendenza("SV001");
+            vocePendenza.setDescrizione("Quota fissa TARI 2024");
+            vocePendenza.setImporto(150.50);
+            vocePendenza.setIndice(1);
 
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setNumeroAvviso("123456789012345678");
+            pendenzaModel.setVoci(List.of(vocePendenza));
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
@@ -200,6 +254,12 @@ class PendenzeServiceTest {
 
             assertTrue(result.isPresent());
             assertEquals("123456789012345678", result.get().getNumeroAvviso());
+
+            // Verifica che ci sia almeno una voce
+            assertNotNull(result.get().getVoci());
+            assertFalse(result.get().getVoci().isEmpty());
+            assertEquals(1, result.get().getVoci().size());
+            assertEquals("SV001", result.get().getVoci().get(0).getIdVocePendenza());
         }
 
         @Test
@@ -274,14 +334,21 @@ class PendenzeServiceTest {
     class GetRicevutaTests {
 
         @Test
-        @DisplayName("Dovrebbe restituire ricevuta quando trovata")
-        void shouldReturnRicevutaWhenFound() {
+        @DisplayName("Dovrebbe restituire ricevuta con voci quando trovata")
+        void shouldReturnRicevutaWithVociWhenFound() {
             versamento.setStatoVersamento(StatoVersamento.ESEGUITO);
             versamento.setDataPagamento(LocalDateTime.now());
+
+            VoceRicevuta voceRicevuta = new VoceRicevuta();
+            voceRicevuta.setIdRiscossione("1");
+            voceRicevuta.setDescrizione("Quota fissa TARI 2024");
+            voceRicevuta.setImporto(150.50);
+            voceRicevuta.setStato("ESEGUITO");
 
             Ricevuta ricevutaModel = new Ricevuta();
             ricevutaModel.setIuv("01234567890123456");
             ricevutaModel.setStato("ESEGUITO");
+            ricevutaModel.setElencoVoci(List.of(voceRicevuta));
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
@@ -292,6 +359,13 @@ class PendenzeServiceTest {
             assertTrue(result.isPresent());
             assertEquals("01234567890123456", result.get().getIuv());
             assertEquals("ESEGUITO", result.get().getStato());
+
+            // Verifica che ci sia almeno una voce
+            assertNotNull(result.get().getElencoVoci());
+            assertFalse(result.get().getElencoVoci().isEmpty());
+            assertEquals(1, result.get().getElencoVoci().size());
+            assertEquals("Quota fissa TARI 2024", result.get().getElencoVoci().get(0).getDescrizione());
+            assertEquals(150.50, result.get().getElencoVoci().get(0).getImporto());
         }
 
         @Test
