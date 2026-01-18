@@ -12,6 +12,6 @@ import it.govpay.portal.entity.DominioLogo;
 @Repository
 public interface DominioLogoRepository extends JpaRepository<DominioLogo, Long> {
 
-    @Query("SELECT d.logo FROM Dominio d WHERE d.codDominio = :codDominio")
+    @Query("SELECT dl.logo FROM DominioLogo dl WHERE dl.codDominio = :codDominio")
     Optional<byte[]> findLogoByCodDominio(@Param("codDominio") String codDominio);
 }
