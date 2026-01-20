@@ -70,8 +70,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S4502") // CSRF cookie senza HttpOnly e' intenzionale per SPA
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // CSRF token repository che salva il token in un cookie leggibile da JavaScript
+        // CSRF token repository che salva il token in un cookie leggibile da JavaScript.
+        // HttpOnly=false e' necessario per permettere a SPA/JavaScript di leggere il token
+        // dal cookie XSRF-TOKEN e inviarlo nell'header X-XSRF-TOKEN nelle richieste POST/PUT/DELETE.
+        // Questo e' il pattern standard per protezione CSRF in applicazioni REST con frontend SPA.
+        // Il token CSRF non e' un segreto di sessione: anche se letto via XSS, non permette
+        // di eseguire CSRF perche' l'attaccante non puo' generare richieste cross-origin valide.
         CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         // Handler per supportare protezione BREACH
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
@@ -81,15 +87,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .csrfTokenRepository(csrfTokenRepository)
                 .csrfTokenRequestHandler(csrfHandler)
-                // Ignora CSRF per endpoint GET (safe method) e risorse statiche
-                .ignoringRequestMatchers(
-                    "/swagger-ui/**", "/swagger-ui.html",
-                    "/v3/api-docs/**", "/api-docs/**",
-                    "/*.yaml", "/*.json", "/index.html",
-                    "/*.png", "/*.css", "/*.js",
-                    "/*.css.map", "/*.js.map",
-                    "/actuator/health"
-                )
+                // NOTA: Spring Security 6 ignora automaticamente i safe methods (GET/HEAD/OPTIONS/TRACE)
+                // quindi non e' necessario escluderli esplicitamente
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
