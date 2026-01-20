@@ -1,5 +1,6 @@
 package it.govpay.portal.security;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -54,10 +55,18 @@ class SecurityConfigTest {
         }
 
         @Test
-        @DisplayName("GET /logout senza autenticazione dovrebbe restituire redirect")
-        void getLogoutWithoutAuthShouldReturnRedirect() throws Exception {
-            // Spring Security logout handler restituisce redirect anche per utenti anonimi
+        @DisplayName("GET /logout senza CSRF dovrebbe restituire 403")
+        void getLogoutWithoutCsrfShouldReturn403() throws Exception {
+            // Con CSRF abilitato, GET /logout richiede autenticazione
             mockMvc.perform(get("/logout"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("POST /logout con CSRF dovrebbe restituire redirect")
+        void postLogoutWithCsrfShouldReturnRedirect() throws Exception {
+            mockMvc.perform(post("/logout")
+                            .with(csrf()))
                     .andExpect(status().is3xxRedirection());
         }
 
@@ -184,6 +193,7 @@ class SecurityConfigTest {
         @DisplayName("DELETE /pendenze/{idDominio}/{numeroAvviso} dovrebbe restituire 403")
         void deletePendenzaShouldBeDenied() throws Exception {
             mockMvc.perform(delete("/pendenze/12345678901/123456789012345678")
+                            .with(csrf())
                             .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
                             .header(SPID_NAME, "Mario")
                             .header(SPID_FAMILY_NAME, "Rossi"))
@@ -194,6 +204,7 @@ class SecurityConfigTest {
         @DisplayName("PUT /domini/{idDominio} dovrebbe restituire 403")
         void putDominioShouldBeDenied() throws Exception {
             mockMvc.perform(put("/domini/12345678901")
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
                     .andExpect(status().isForbidden());

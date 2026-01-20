@@ -10,6 +10,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 import it.govpay.portal.repository.VersamentoRepository;
@@ -69,8 +71,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // CSRF token repository che salva il token in un cookie leggibile da JavaScript
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        // Handler per supportare protezione BREACH
+        CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+        csrfHandler.setCsrfRequestAttributeName("_csrf");
+
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(csrfTokenRepository)
+                .csrfTokenRequestHandler(csrfHandler)
+                // Ignora CSRF per endpoint GET (safe method) e risorse statiche
+                .ignoringRequestMatchers(
+                    "/swagger-ui/**", "/swagger-ui.html",
+                    "/v3/api-docs/**", "/api-docs/**",
+                    "/*.yaml", "/*.json", "/index.html",
+                    "/*.png", "/*.css", "/*.js",
+                    "/*.css.map", "/*.js.map",
+                    "/actuator/health"
+                )
+            )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .sessionFixation().changeSessionId()
