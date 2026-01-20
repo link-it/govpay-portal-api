@@ -28,7 +28,8 @@ public class AvvisiRequestMatcher extends HardeningRequestMatcher {
 
     // Pattern per estrarre idDominio e numeroAvviso/IUV dal path
     // es: /pendenze/{idDominio}/{numeroAvviso}/avviso
-    private static final Pattern AVVISI_PATH_PATTERN = Pattern.compile(".*/pendenze/([^/]+)/([^/]+)/avviso.*");
+    // Usa find() invece di matches() per evitare ReDoS con .*
+    private static final Pattern AVVISI_PATH_PATTERN = Pattern.compile("/pendenze/([^/]+)/([^/]+)/avviso");
 
     private final VersamentoRepository versamentoRepository;
 
@@ -78,7 +79,7 @@ public class AvvisiRequestMatcher extends HardeningRequestMatcher {
         }
 
         Matcher matcher = AVVISI_PATH_PATTERN.matcher(pathInfo);
-        if (matcher.matches()) {
+        if (matcher.find()) {
             return new String[]{matcher.group(1), matcher.group(2)};
         }
         return null;
