@@ -70,7 +70,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    @SuppressWarnings("java:S4502") // CSRF cookie senza HttpOnly e' intenzionale per SPA
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // CSRF token repository che salva il token in un cookie leggibile da JavaScript.
         // HttpOnly=false e' necessario per permettere a SPA/JavaScript di leggere il token
@@ -78,7 +77,7 @@ public class SecurityConfig {
         // Questo e' il pattern standard per protezione CSRF in applicazioni REST con frontend SPA.
         // Il token CSRF non e' un segreto di sessione: anche se letto via XSS, non permette
         // di eseguire CSRF perche' l'attaccante non puo' generare richieste cross-origin valide.
-        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse(); // NOSONAR - HttpOnly=false intenzionale per SPA
         // Handler per supportare protezione BREACH
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName("_csrf");
