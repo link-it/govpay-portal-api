@@ -1,0 +1,33 @@
+2025-01-21  Giuliano Pintori <pintori@link.it>
+
+	* Rilasciata versione 1.0.0
+
+	* [Core]
+	Prima versione del microservizio Portal API per GovPay.
+	Implementate API REST per il portale di pagamento:
+	- GET /domini: elenco domini disponibili
+	- GET /domini/{idDominio}: dettaglio dominio
+	- GET /domini/{idDominio}/logo: logo del dominio
+	- GET /domini/{idDominio}/tipiPendenza: tipi pendenza del dominio
+	- GET /pendenze/{idDominio}: elenco pendenze utente autenticato
+	- GET /pendenze/{idDominio}/{numeroAvviso}: dettaglio pendenza
+	- POST /pendenze/{idDominio}/{idTipoPendenza}: creazione pendenza spontanea
+	- GET /pendenze/{idDominio}/{numeroAvviso}/avviso: download PDF avviso
+	- GET /pendenze/{idDominio}/{numeroAvviso}/ricevuta: download PDF ricevuta
+	- GET /profilo: profilo utente autenticato
+	- GET /logout: logout utente
+
+	* [Sicurezza]
+	Implementata autenticazione SPID tramite header HTTP.
+	Configurata protezione CSRF con CookieCsrfTokenRepository per SPA.
+	Implementato hardening con ReCaptcha per endpoint pubblici.
+	Protezione ReDoS su pattern di validazione URL.
+
+	* [Docker]
+	Creata configurazione Docker per deployment containerizzato.
+	Supporto per build da JAR locale e da GitHub releases.
+	Entrypoint con configurazione automatica database (PostgreSQL, MySQL, Oracle).
+
+2025-01-20  Giuliano Pintori <pintori@link.it>
+
+	* Creazione repository.
