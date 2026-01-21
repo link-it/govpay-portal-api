@@ -115,14 +115,26 @@ GOVPAY_PORTAL_MAX_POOL=${GOVPAY_PORTAL_MAX_POOL:-5}
 # Configurazione GovPay API backend
 ##############################################################################
 
+# API Pendenze - mappatura a variabili Spring
 if [ -n "${GOVPAY_API_PENDENZE_URL}" ]; then
-    export GOVPAY_API_PENDENZE_URL
-    log_info "GovPay API Pendenze: ${GOVPAY_API_PENDENZE_URL}"
+    export GOVPAY_PENDENZE_BASE_URL="${GOVPAY_API_PENDENZE_URL}"
+    log_info "GovPay API Pendenze URL: ${GOVPAY_API_PENDENZE_URL}"
 fi
 
+if [ -n "${GOVPAY_API_PENDENZE_USERNAME}" ]; then
+    export GOVPAY_PENDENZE_USERNAME="${GOVPAY_API_PENDENZE_USERNAME}"
+    log_info "GovPay API Pendenze Username: ${GOVPAY_API_PENDENZE_USERNAME}"
+fi
+
+if [ -n "${GOVPAY_API_PENDENZE_PASSWORD}" ]; then
+    export GOVPAY_PENDENZE_PASSWORD="${GOVPAY_API_PENDENZE_PASSWORD}"
+    log_info "GovPay API Pendenze Password: ****"
+fi
+
+# API Stampe - mappatura a variabili Spring
 if [ -n "${GOVPAY_API_STAMPE_URL}" ]; then
-    export GOVPAY_API_STAMPE_URL
-    log_info "GovPay API Stampe: ${GOVPAY_API_STAMPE_URL}"
+    export GOVPAY_STAMPE_BASE_URL="${GOVPAY_API_STAMPE_URL}"
+    log_info "GovPay API Stampe URL: ${GOVPAY_API_STAMPE_URL}"
 fi
 
 ##############################################################################
