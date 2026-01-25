@@ -30,6 +30,7 @@
         <!-- Version overrides for CVE fixes -->
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <log4j2.version>2.25.3</log4j2.version>
+        <logback.version>1.5.25</logback.version>
 
         <!-- JaCoCo -->
         <jacoco.version>0.8.13</jacoco.version>
@@ -169,6 +170,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- FreeMarker Template Engine -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+        </dependency>
+
+        <!-- JsonPath for JSON extraction -->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
         </dependency>
 
         <!-- Test -->

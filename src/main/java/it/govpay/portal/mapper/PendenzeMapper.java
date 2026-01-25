@@ -289,4 +289,94 @@ public class PendenzeMapper {
         };
     }
 
+    /**
+     * Converte la risposta della creazione pendenza dal client GovPay nel modello portal.
+     */
+    public Pendenza toPendenzaFromCreata(
+            it.govpay.pendenze.client.model.PendenzaCreata pendenzaCreata,
+            it.govpay.pendenze.client.model.NuovaPendenza nuovaPendenza) {
+
+        Pendenza pendenza = new Pendenza();
+
+        // Dati dalla risposta di creazione
+        pendenza.setNumeroAvviso(pendenzaCreata.getNumeroAvviso());
+
+        // Dati dal dominio
+        if (pendenzaCreata.getIdDominio() != null) {
+            Dominio dominio = new Dominio();
+            dominio.setIdDominio(pendenzaCreata.getIdDominio());
+            pendenza.setDominio(dominio);
+        }
+
+        // Dati dalla richiesta originale
+        pendenza.setIdTipoPendenza(nuovaPendenza.getIdTipoPendenza());
+        pendenza.setCausale(nuovaPendenza.getCausale());
+        pendenza.setImporto(nuovaPendenza.getImporto());
+
+        if (nuovaPendenza.getDataValidita() != null) {
+            pendenza.setDataValidita(nuovaPendenza.getDataValidita());
+        }
+        if (nuovaPendenza.getDataScadenza() != null) {
+            pendenza.setDataScadenza(nuovaPendenza.getDataScadenza());
+        }
+        if (nuovaPendenza.getAnnoRiferimento() != null) {
+            pendenza.setAnnoRiferimento(nuovaPendenza.getAnnoRiferimento());
+        }
+
+        // UUID dalla risposta (se presente)
+        pendenza.setUUID(pendenzaCreata.getUUID());
+
+        // Stato iniziale
+        pendenza.setStato(StatoPendenza.NON_ESEGUITA);
+
+        // Data caricamento
+        pendenza.setDataCaricamento(java.time.LocalDate.now());
+
+        // Soggetto pagatore
+        if (nuovaPendenza.getSoggettoPagatore() != null) {
+            Soggetto soggetto = new Soggetto();
+            it.govpay.pendenze.client.model.Soggetto sp = nuovaPendenza.getSoggettoPagatore();
+
+            if (sp.getTipo() != null) {
+                soggetto.setTipo(TipoSoggetto.fromValue(sp.getTipo().getValue()));
+            }
+            soggetto.setIdentificativo(sp.getIdentificativo());
+            soggetto.setAnagrafica(sp.getAnagrafica());
+            soggetto.setIndirizzo(sp.getIndirizzo());
+            soggetto.setCivico(sp.getCivico());
+            soggetto.setCap(sp.getCap());
+            soggetto.setLocalita(sp.getLocalita());
+            soggetto.setProvincia(sp.getProvincia());
+            soggetto.setNazione(sp.getNazione());
+            soggetto.setEmail(sp.getEmail());
+            soggetto.setCellulare(sp.getCellulare());
+
+            pendenza.setSoggettoPagatore(soggetto);
+        }
+
+        // Voci di pendenza
+        if (nuovaPendenza.getVoci() != null && !nuovaPendenza.getVoci().isEmpty()) {
+            List<VocePendenza> voci = new ArrayList<>();
+            int indice = 1;
+            for (it.govpay.pendenze.client.model.NuovaVocePendenza nv : nuovaPendenza.getVoci()) {
+                VocePendenza voce = new VocePendenza();
+                voce.setIdVocePendenza(nv.getIdVocePendenza());
+                voce.setImporto(nv.getImporto());
+                voce.setDescrizione(nv.getDescrizione());
+                voce.setIndice(indice++);
+
+                if (nv.getIdDominio() != null) {
+                    Dominio d = new Dominio();
+                    d.setIdDominio(nv.getIdDominio());
+                    voce.setDominio(d);
+                }
+
+                voci.add(voce);
+            }
+            pendenza.setVoci(voci);
+        }
+
+        return pendenza;
+    }
+
 }
