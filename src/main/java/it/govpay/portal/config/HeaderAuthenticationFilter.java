@@ -29,7 +29,8 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-    	log.debug("Lettura del principal SPID dall'Header [{}]...", spidHeaders.getFiscalNumber());
+    	log.debug("{} {} - Lettura del principal SPID dall'Header [{}]...",
+    			request.getMethod(), request.getRequestURI(), spidHeaders.getFiscalNumber());
         String fiscalNumber = request.getHeader(spidHeaders.getFiscalNumber());
 
         if (fiscalNumber != null && !fiscalNumber.isBlank()) {
