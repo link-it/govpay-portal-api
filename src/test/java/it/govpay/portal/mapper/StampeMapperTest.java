@@ -61,6 +61,7 @@ class StampeMapperTest {
                 .codDominio("12345678901")
                 .ragioneSociale("Comune di Test")
                 .stazione(stazione)
+                .cbill("ABCDE")
                 .build();
 
         versamento = Versamento.builder()
@@ -100,7 +101,7 @@ class StampeMapperTest {
             assertNotNull(notice.getCreditor());
             assertEquals("12345678901", notice.getCreditor().getFiscalCode());
             assertEquals("Comune di Test", notice.getCreditor().getBusinessName());
-            assertEquals("12345678901_01", notice.getCreditor().getCbillCode());
+            assertEquals("ABCDE", notice.getCreditor().getCbillCode());
 
             // Debtor
             assertNotNull(notice.getDebtor());
@@ -201,9 +202,9 @@ class StampeMapperTest {
         }
 
         @Test
-        @DisplayName("Dovrebbe gestire dominio senza stazione")
-        void shouldHandleDominioWithoutStazione() {
-            dominio.setStazione(null);
+        @DisplayName("Dovrebbe gestire dominio senza cbill")
+        void shouldHandleDominioWithoutCbill() {
+            dominio.setCbill(null);
 
             PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
 

@@ -176,7 +176,7 @@ class PendenzeServiceTest {
             pendenzaModel.setStato(StatoPendenza.ESEGUITA);
 
             when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
-                    "12345678901", "RSSMRA80A01H501U", "ESEGUITO"))
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ESEGUITO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
 
@@ -188,7 +188,7 @@ class PendenzeServiceTest {
             assertEquals(StatoPendenza.ESEGUITA, result.getRisultati().get(0).getStato());
 
             verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
-                    "12345678901", "RSSMRA80A01H501U", "ESEGUITO");
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ESEGUITO);
         }
 
         @Test
@@ -200,7 +200,7 @@ class PendenzeServiceTest {
             pendenzaModel.setStato(StatoPendenza.NON_ESEGUITA);
 
             when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
-                    "12345678901", "RSSMRA80A01H501U", "NON_ESEGUITO"))
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.NON_ESEGUITO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
 
@@ -208,6 +208,81 @@ class PendenzeServiceTest {
 
             assertNotNull(result);
             assertEquals(StatoPendenza.NON_ESEGUITA, result.getRisultati().get(0).getStato());
+
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.NON_ESEGUITO);
+        }
+
+        @Test
+        @DisplayName("Dovrebbe restituire lista di pendenze con filtro stato ESEGUITA_PARZIALE")
+        void shouldReturnPendenzeWithStateFilterEseguitaParziale() {
+            setupSecurityContext();
+
+            versamento.setStatoVersamento(StatoVersamento.PARZIALMENTE_ESEGUITO);
+
+            Pendenza pendenzaModel = new Pendenza();
+            pendenzaModel.setStato(StatoPendenza.ESEGUITA_PARZIALE);
+
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.PARZIALMENTE_ESEGUITO))
+                    .thenReturn(List.of(versamento));
+            when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
+
+            ListaPendenze result = pendenzeService.getPendenze("12345678901", StatoPendenza.ESEGUITA_PARZIALE);
+
+            assertNotNull(result);
+            assertEquals(StatoPendenza.ESEGUITA_PARZIALE, result.getRisultati().get(0).getStato());
+
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.PARZIALMENTE_ESEGUITO);
+        }
+
+        @Test
+        @DisplayName("Dovrebbe restituire lista di pendenze con filtro stato ANNULLATA")
+        void shouldReturnPendenzeWithStateFilterAnnullata() {
+            setupSecurityContext();
+
+            versamento.setStatoVersamento(StatoVersamento.ANNULLATO);
+
+            Pendenza pendenzaModel = new Pendenza();
+            pendenzaModel.setStato(StatoPendenza.ANNULLATA);
+
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANNULLATO))
+                    .thenReturn(List.of(versamento));
+            when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
+
+            ListaPendenze result = pendenzeService.getPendenze("12345678901", StatoPendenza.ANNULLATA);
+
+            assertNotNull(result);
+            assertEquals(StatoPendenza.ANNULLATA, result.getRisultati().get(0).getStato());
+
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANNULLATO);
+        }
+
+        @Test
+        @DisplayName("Dovrebbe restituire lista di pendenze con filtro stato ANOMALA")
+        void shouldReturnPendenzeWithStateFilterAnomala() {
+            setupSecurityContext();
+
+            versamento.setStatoVersamento(StatoVersamento.ANOMALO);
+
+            Pendenza pendenzaModel = new Pendenza();
+            pendenzaModel.setStato(StatoPendenza.ANOMALA);
+
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANOMALO))
+                    .thenReturn(List.of(versamento));
+            when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
+
+            ListaPendenze result = pendenzeService.getPendenze("12345678901", StatoPendenza.ANOMALA);
+
+            assertNotNull(result);
+            assertEquals(StatoPendenza.ANOMALA, result.getRisultati().get(0).getStato());
+
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANOMALO);
         }
 
         @Test

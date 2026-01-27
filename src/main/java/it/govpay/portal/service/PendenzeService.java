@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.govpay.portal.config.SpidUserDetails;
+import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.mapper.PendenzeMapper;
 import it.govpay.portal.model.Avviso;
@@ -37,7 +38,7 @@ public class PendenzeService {
 
         List<Versamento> versamenti;
         if (stato != null) {
-            String statoVersamento = mapStatoPendenzaToStatoVersamento(stato);
+            StatoVersamento statoVersamento = mapStatoPendenzaToStatoVersamento(stato);
             versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
                     idDominio, codiceFiscale, statoVersamento);
         } else {
@@ -74,14 +75,14 @@ public class PendenzeService {
                 .map(pendenzeMapper::toRicevuta);
     }
 
-    private String mapStatoPendenzaToStatoVersamento(StatoPendenza stato) {
+    private StatoVersamento mapStatoPendenzaToStatoVersamento(StatoPendenza stato) {
         return switch (stato) {
-            case ESEGUITA -> "ESEGUITO";
-            case NON_ESEGUITA -> "NON_ESEGUITO";
-            case ESEGUITA_PARZIALE -> "PARZIALMENTE_ESEGUITO";
-            case ANNULLATA -> "ANNULLATO";
-            case SCADUTA -> "SCADUTO";
-            case ANOMALA -> "ANOMALO";
+            case ESEGUITA -> StatoVersamento.ESEGUITO;
+            case NON_ESEGUITA -> StatoVersamento.NON_ESEGUITO;
+            case ESEGUITA_PARZIALE -> StatoVersamento.PARZIALMENTE_ESEGUITO;
+            case ANNULLATA -> StatoVersamento.ANNULLATO;
+            case SCADUTA -> StatoVersamento.NON_ESEGUITO; // Non c'è SCADUTO nell'enum, uso NON_ESEGUITO
+            case ANOMALA -> StatoVersamento.ANOMALO;
         };
     }
 
