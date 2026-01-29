@@ -39,15 +39,15 @@ public class PendenzeService {
 
         List<Versamento> versamenti;
         if (stato == null) {
-            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
+            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
                     idDominio, codiceFiscale);
         } else if (stato == StatoPendenza.SCADUTA) {
             // SCADUTA è uno stato derivato: pendenze non pagate con data scadenza passata
-            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBeforeOrderByDataCreazioneDesc(
                     idDominio, codiceFiscale, StatoVersamento.NON_ESEGUITO, LocalDateTime.now());
         } else {
             StatoVersamento statoVersamento = mapStatoPendenzaToStatoVersamento(stato);
-            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     idDominio, codiceFiscale, statoVersamento);
         }
 

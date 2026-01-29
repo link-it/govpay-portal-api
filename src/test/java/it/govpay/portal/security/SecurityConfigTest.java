@@ -173,8 +173,13 @@ class SecurityConfigTest {
         @DisplayName("GET /actuator/health dovrebbe essere accessibile senza autenticazione")
         void getHealthShouldBePublic() throws Exception {
             mockMvc.perform(get("/actuator/health"))
-                    // 200 o 404 se actuator non e' abilitato, ma mai 401/403
-                    .andExpect(status().is4xxClientError());
+                    // Non deve richiedere autenticazione (401/403)
+                    .andExpect(result -> {
+                        int status = result.getResponse().getStatus();
+                        if (status == 401 || status == 403) {
+                            throw new AssertionError("Expected status not to be 401 or 403, but was " + status);
+                        }
+                    });
         }
     }
 

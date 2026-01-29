@@ -27,16 +27,16 @@ public interface VersamentoRepository extends JpaRepository<Versamento, Long>, J
 
     List<Versamento> findByDominioIdAndStatoVersamento(Long idDominio, StatoVersamento statoVersamento);
 
-    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativo(
+    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
             String codDominio, String debitoreIdentificativo);
 
-    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
             String codDominio, String debitoreIdentificativo, StatoVersamento statoVersamento);
 
     /**
      * Trova le pendenze scadute: data scadenza passata e stato NON_ESEGUITO.
      */
-    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBeforeOrderByDataCreazioneDesc(
             String codDominio, String debitoreIdentificativo, StatoVersamento statoVersamento, LocalDateTime dataScadenza);
 
     Optional<Versamento> findByDominioCodDominioAndNumeroAvvisoAndIdSessione(

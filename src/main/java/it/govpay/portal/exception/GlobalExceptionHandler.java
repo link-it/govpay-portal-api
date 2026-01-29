@@ -62,4 +62,14 @@ public class GlobalExceptionHandler {
         errore.setDettaglio(ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errore);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Errore> handleGenericException(Exception ex) {
+        Errore errore = new Errore();
+        errore.setCategoria("INTERNO");
+        errore.setCodice("503");
+        errore.setDescrizione("Servizio non disponibile");
+        errore.setDettaglio("Errore interno del server");
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errore);
+    }
 }

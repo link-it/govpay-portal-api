@@ -137,7 +137,7 @@ class PendenzeServiceTest {
             pendenzaModel.setImporto(150.50);
             pendenzaModel.setVoci(List.of(vocePendenza));
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U"))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -159,9 +159,9 @@ class PendenzeServiceTest {
             assertEquals("Quota fissa TARI 2024", pendenza.getVoci().get(0).getDescrizione());
             assertEquals(150.50, pendenza.getVoci().get(0).getImporto());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativo(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U");
-            verify(versamentoRepository, never()).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository, never()).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     any(), any(), any());
         }
 
@@ -175,7 +175,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.ESEGUITA);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ESEGUITO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -187,7 +187,7 @@ class PendenzeServiceTest {
             assertEquals(1, result.getRisultati().size());
             assertEquals(StatoPendenza.ESEGUITA, result.getRisultati().get(0).getStato());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ESEGUITO);
         }
 
@@ -199,7 +199,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.NON_ESEGUITA);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.NON_ESEGUITO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -209,7 +209,7 @@ class PendenzeServiceTest {
             assertNotNull(result);
             assertEquals(StatoPendenza.NON_ESEGUITA, result.getRisultati().get(0).getStato());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.NON_ESEGUITO);
         }
 
@@ -223,7 +223,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.ESEGUITA_PARZIALE);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.PARZIALMENTE_ESEGUITO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -233,7 +233,7 @@ class PendenzeServiceTest {
             assertNotNull(result);
             assertEquals(StatoPendenza.ESEGUITA_PARZIALE, result.getRisultati().get(0).getStato());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.PARZIALMENTE_ESEGUITO);
         }
 
@@ -247,7 +247,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.ANNULLATA);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANNULLATO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -257,7 +257,7 @@ class PendenzeServiceTest {
             assertNotNull(result);
             assertEquals(StatoPendenza.ANNULLATA, result.getRisultati().get(0).getStato());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANNULLATO);
         }
 
@@ -271,7 +271,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.ANOMALA);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANOMALO))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -281,7 +281,7 @@ class PendenzeServiceTest {
             assertNotNull(result);
             assertEquals(StatoPendenza.ANOMALA, result.getRisultati().get(0).getStato());
 
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U", StatoVersamento.ANOMALO);
         }
 
@@ -297,7 +297,7 @@ class PendenzeServiceTest {
             Pendenza pendenzaModel = new Pendenza();
             pendenzaModel.setStato(StatoPendenza.SCADUTA);
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBeforeOrderByDataCreazioneDesc(
                     eq("12345678901"), eq("RSSMRA80A01H501U"), eq(StatoVersamento.NON_ESEGUITO), any(LocalDateTime.class)))
                     .thenReturn(List.of(versamento));
             when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
@@ -309,10 +309,10 @@ class PendenzeServiceTest {
             assertEquals(StatoPendenza.SCADUTA, result.getRisultati().get(0).getStato());
 
             // Verifica che venga usata la query specifica per SCADUTA
-            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBeforeOrderByDataCreazioneDesc(
                     eq("12345678901"), eq("RSSMRA80A01H501U"), eq(StatoVersamento.NON_ESEGUITO), any(LocalDateTime.class));
             // Verifica che NON venga usata la query generica
-            verify(versamentoRepository, never()).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+            verify(versamentoRepository, never()).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoOrderByDataCreazioneDesc(
                     any(), any(), any());
         }
 
@@ -321,7 +321,7 @@ class PendenzeServiceTest {
         void shouldReturnEmptyListWhenNoPendenze() {
             setupSecurityContext();
 
-            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
                     "12345678901", "RSSMRA80A01H501U"))
                     .thenReturn(new ArrayList<>());
 
