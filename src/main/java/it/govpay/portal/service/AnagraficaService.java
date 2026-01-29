@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamentoDominio;
+import it.govpay.portal.exception.UnauthorizedException;
 import it.govpay.portal.mapper.AnagraficaMapper;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.ListaDomini;
@@ -44,8 +45,7 @@ public class AnagraficaService {
     }
 
     public Profilo getProfilo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        SpidUserDetails spidUser = (SpidUserDetails) authentication.getPrincipal();
+        SpidUserDetails spidUser = getAuthenticatedUser();
 
         Profilo profilo = new Profilo();
         profilo.setNome(spidUser.getFiscalNumber());
@@ -66,6 +66,8 @@ public class AnagraficaService {
     }
 
     public void logout() {
+        // Verifica che l'utente sia autenticato prima di procedere con il logout
+        getAuthenticatedUser();
         // TODO: integrare con Spring Security per gestire il logout
     }
 
@@ -115,6 +117,20 @@ public class AnagraficaService {
 
     public Optional<byte[]> getLogo(String idDominio) {
         return this.dominioLogoRepository.findLogoByCodDominio(idDominio);
+    }
+
+    private SpidUserDetails getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new UnauthorizedException("Autenticazione non presente");
+        }
+
+        if (!(authentication.getPrincipal() instanceof SpidUserDetails)) {
+            throw new UnauthorizedException("Utente non autenticato tramite SPID");
+        }
+
+        return (SpidUserDetails) authentication.getPrincipal();
     }
 
 }

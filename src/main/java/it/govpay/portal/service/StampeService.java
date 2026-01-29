@@ -1,7 +1,5 @@
 package it.govpay.portal.service;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -60,8 +58,7 @@ public class StampeService {
                 .map(versamento -> {
                     try {
                         PaymentNotice paymentNotice = stampeMapper.toPaymentNotice(versamento, linguaSecondaria);
-                        File pdfFile = paymentNoticeApi.createPaymentNotice(paymentNotice);
-                        byte[] pdf = Files.readAllBytes(pdfFile.toPath());
+                        byte[] pdf = paymentNoticeApi.createPaymentNotice(paymentNotice);
                         log.debug("PDF avviso generato con successo, dimensione: {} bytes", pdf.length);
                         return pdf;
                     } catch (Exception e) {
@@ -88,8 +85,7 @@ public class StampeService {
                         Rpt rpt = rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(versamento.getId())
                                 .orElse(null);
                         Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
-                        File pdfFile = receiptApi.createReceipt(receipt);
-                        byte[] pdf = Files.readAllBytes(pdfFile.toPath());
+                        byte[] pdf = receiptApi.createReceipt(receipt);
                         log.debug("PDF ricevuta generato con successo, dimensione: {} bytes", pdf.length);
                         return pdf;
                     } catch (Exception e) {

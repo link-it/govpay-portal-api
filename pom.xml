@@ -274,6 +274,9 @@
                             <modelPackage>it.govpay.stampe.client.model</modelPackage>
                             <invokerPackage>it.govpay.stampe.client</invokerPackage>
                             <output>${project.build.directory}/generated-sources/govpay-stampe-client</output>
+                            <typeMappings>
+                                <typeMapping>File=byte[]</typeMapping>
+                            </typeMappings>
                             <configOptions>
                                 <library>resttemplate</library>
                                 <useJakartaEe>true</useJakartaEe>

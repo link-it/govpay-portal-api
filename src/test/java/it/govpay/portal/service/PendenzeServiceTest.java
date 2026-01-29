@@ -286,6 +286,37 @@ class PendenzeServiceTest {
         }
 
         @Test
+        @DisplayName("Dovrebbe restituire lista di pendenze scadute con filtro stato SCADUTA")
+        void shouldReturnPendenzeWithStateFilterScaduta() {
+            setupSecurityContext();
+
+            // Pendenza scaduta: data scadenza nel passato e stato NON_ESEGUITO
+            versamento.setStatoVersamento(StatoVersamento.NON_ESEGUITO);
+            versamento.setDataScadenza(LocalDateTime.now().minusDays(10));
+
+            Pendenza pendenzaModel = new Pendenza();
+            pendenzaModel.setStato(StatoPendenza.SCADUTA);
+
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+                    eq("12345678901"), eq("RSSMRA80A01H501U"), eq(StatoVersamento.NON_ESEGUITO), any(LocalDateTime.class)))
+                    .thenReturn(List.of(versamento));
+            when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
+
+            ListaPendenze result = pendenzeService.getPendenze("12345678901", StatoPendenza.SCADUTA);
+
+            assertNotNull(result);
+            assertEquals(1, result.getRisultati().size());
+            assertEquals(StatoPendenza.SCADUTA, result.getRisultati().get(0).getStato());
+
+            // Verifica che venga usata la query specifica per SCADUTA
+            verify(versamentoRepository).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+                    eq("12345678901"), eq("RSSMRA80A01H501U"), eq(StatoVersamento.NON_ESEGUITO), any(LocalDateTime.class));
+            // Verifica che NON venga usata la query generica
+            verify(versamentoRepository, never()).findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
+                    any(), any(), any());
+        }
+
+        @Test
         @DisplayName("Dovrebbe restituire lista vuota quando non ci sono pendenze")
         void shouldReturnEmptyListWhenNoPendenze() {
             setupSecurityContext();

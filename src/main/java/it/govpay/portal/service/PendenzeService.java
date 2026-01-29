@@ -1,5 +1,6 @@
 package it.govpay.portal.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
+import it.govpay.portal.exception.UnauthorizedException;
 import it.govpay.portal.mapper.PendenzeMapper;
 import it.govpay.portal.model.Avviso;
 import it.govpay.portal.model.ListaPendenze;
@@ -32,18 +34,21 @@ public class PendenzeService {
     }
 
     public ListaPendenze getPendenze(String idDominio, StatoPendenza stato) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        SpidUserDetails spidUser = (SpidUserDetails) authentication.getPrincipal();
+        SpidUserDetails spidUser = getAuthenticatedUser();
         String codiceFiscale = spidUser.getFiscalNumber();
 
         List<Versamento> versamenti;
-        if (stato != null) {
+        if (stato == null) {
+            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
+                    idDominio, codiceFiscale);
+        } else if (stato == StatoPendenza.SCADUTA) {
+            // SCADUTA è uno stato derivato: pendenze non pagate con data scadenza passata
+            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+                    idDominio, codiceFiscale, StatoVersamento.NON_ESEGUITO, LocalDateTime.now());
+        } else {
             StatoVersamento statoVersamento = mapStatoPendenzaToStatoVersamento(stato);
             versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
                     idDominio, codiceFiscale, statoVersamento);
-        } else {
-            versamenti = versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativo(
-                    idDominio, codiceFiscale);
         }
 
         List<Pendenza> pendenze = versamenti.stream()
@@ -56,8 +61,7 @@ public class PendenzeService {
     }
 
     public Optional<Pendenza> getPendenza(String idDominio, String numeroAvviso) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        SpidUserDetails spidUser = (SpidUserDetails) authentication.getPrincipal();
+        SpidUserDetails spidUser = getAuthenticatedUser();
         String codiceFiscale = spidUser.getFiscalNumber();
 
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
@@ -81,9 +85,23 @@ public class PendenzeService {
             case NON_ESEGUITA -> StatoVersamento.NON_ESEGUITO;
             case ESEGUITA_PARZIALE -> StatoVersamento.PARZIALMENTE_ESEGUITO;
             case ANNULLATA -> StatoVersamento.ANNULLATO;
-            case SCADUTA -> StatoVersamento.NON_ESEGUITO; // Non c'è SCADUTO nell'enum, uso NON_ESEGUITO
+            case SCADUTA -> throw new IllegalArgumentException("SCADUTA deve essere gestito separatamente");
             case ANOMALA -> StatoVersamento.ANOMALO;
         };
+    }
+
+    private SpidUserDetails getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new UnauthorizedException("Autenticazione non presente");
+        }
+
+        if (!(authentication.getPrincipal() instanceof SpidUserDetails)) {
+            throw new UnauthorizedException("Utente non autenticato tramite SPID");
+        }
+
+        return (SpidUserDetails) authentication.getPrincipal();
     }
 
 }

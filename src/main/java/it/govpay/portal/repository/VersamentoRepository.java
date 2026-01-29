@@ -1,5 +1,6 @@
 package it.govpay.portal.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,12 @@ public interface VersamentoRepository extends JpaRepository<Versamento, Long>, J
 
     List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamento(
             String codDominio, String debitoreIdentificativo, StatoVersamento statoVersamento);
+
+    /**
+     * Trova le pendenze scadute: data scadenza passata e stato NON_ESEGUITO.
+     */
+    List<Versamento> findByDominioCodDominioAndDebitoreIdentificativoAndStatoVersamentoAndDataScadenzaBefore(
+            String codDominio, String debitoreIdentificativo, StatoVersamento statoVersamento, LocalDateTime dataScadenza);
 
     Optional<Versamento> findByDominioCodDominioAndNumeroAvvisoAndIdSessione(
             String codDominio, String numeroAvviso, String idSessione);

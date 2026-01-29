@@ -1,15 +1,10 @@
 package it.govpay.portal.mapper;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import it.govpay.portal.config.GovPayStampeClientConfig;
@@ -38,8 +33,6 @@ import it.govpay.stampe.client.model.ReceiptVersion;
 
 @Component
 public class StampeMapper {
-
-    private static final Logger log = LoggerFactory.getLogger(StampeMapper.class);
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -111,33 +104,11 @@ public class StampeMapper {
         notice.setFull(fullAmount);
 
         // Logo del creditore
-        File logoFile = createLogoFile(dominio.getCodDominio());
-        notice.setFirstLogo(logoFile);
+        byte[] logoBytes = dominioLogoRepository.findLogoByCodDominio(dominio.getCodDominio())
+                .orElseGet(this::getDefaultLogoBytes);
+        notice.setFirstLogo(logoBytes);
 
         return notice;
-    }
-
-    /**
-     * Crea un file temporaneo con il logo del dominio.
-     * Se il logo non è presente nel database, usa il logo di default.
-     */
-    private File createLogoFile(String codDominio) {
-        try {
-            byte[] logoBytes = dominioLogoRepository.findLogoByCodDominio(codDominio)
-                    .orElseGet(this::getDefaultLogoBytes);
-
-            File tempFile = File.createTempFile("logo_", ".png");
-            tempFile.deleteOnExit();
-
-            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                fos.write(logoBytes);
-            }
-
-            return tempFile;
-        } catch (IOException e) {
-            log.error("Errore nella creazione del file logo: {}", e.getMessage());
-            throw new RuntimeException("Impossibile creare il file del logo", e);
-        }
     }
 
     /**

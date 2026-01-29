@@ -4,10 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -16,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,9 +49,6 @@ class StampeServiceTest {
 
     @InjectMocks
     private StampeService stampeService;
-
-    @TempDir
-    Path tempDir;
 
     private Dominio dominio;
     private Versamento versamento;
@@ -101,22 +93,20 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe generare PDF avviso con successo")
-        void shouldGenerateAvvisoPdfSuccessfully() throws Exception {
-            // Create temp PDF file
-            File pdfFile = tempDir.resolve("avviso.pdf").toFile();
-            Files.write(pdfFile.toPath(), "PDF content".getBytes());
+        void shouldGenerateAvvisoPdfSuccessfully() {
+            byte[] pdfContent = "PDF content".getBytes();
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
             when(stampeMapper.toPaymentNotice(eq(versamento), any()))
                     .thenReturn(paymentNotice);
             when(paymentNoticeApi.createPaymentNotice(paymentNotice))
-                    .thenReturn(pdfFile);
+                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateAvvisoPdf("12345678901", "123456789012345678", null);
 
             assertTrue(result.isPresent());
-            assertArrayEquals("PDF content".getBytes(), result.get());
+            assertArrayEquals(pdfContent, result.get());
 
             verify(versamentoRepository).findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678");
             verify(stampeMapper).toPaymentNotice(versamento, null);
@@ -125,16 +115,15 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe generare PDF avviso con lingua secondaria")
-        void shouldGenerateAvvisoPdfWithSecondLanguage() throws Exception {
-            File pdfFile = tempDir.resolve("avviso_bilingual.pdf").toFile();
-            Files.write(pdfFile.toPath(), "Bilingual PDF".getBytes());
+        void shouldGenerateAvvisoPdfWithSecondLanguage() {
+            byte[] pdfContent = "Bilingual PDF".getBytes();
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
             when(stampeMapper.toPaymentNotice(versamento, LinguaSecondaria.EN))
                     .thenReturn(paymentNotice);
             when(paymentNoticeApi.createPaymentNotice(paymentNotice))
-                    .thenReturn(pdfFile);
+                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateAvvisoPdf("12345678901", "123456789012345678", LinguaSecondaria.EN);
 
@@ -156,7 +145,7 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe restituire empty quando si verifica un errore nella generazione")
-        void shouldReturnEmptyWhenGenerationFails() throws Exception {
+        void shouldReturnEmptyWhenGenerationFails() {
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
             when(stampeMapper.toPaymentNotice(eq(versamento), any()))
@@ -177,9 +166,8 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe generare PDF ricevuta con successo con RPT")
-        void shouldGenerateRicevutaPdfSuccessfullyWithRpt() throws Exception {
-            File pdfFile = tempDir.resolve("ricevuta.pdf").toFile();
-            Files.write(pdfFile.toPath(), "Receipt PDF".getBytes());
+        void shouldGenerateRicevutaPdfSuccessfullyWithRpt() {
+            byte[] pdfContent = "Receipt PDF".getBytes();
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
@@ -188,12 +176,12 @@ class StampeServiceTest {
             when(stampeMapper.toReceipt(versamento, rpt))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
-                    .thenReturn(pdfFile);
+                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
 
             assertTrue(result.isPresent());
-            assertArrayEquals("Receipt PDF".getBytes(), result.get());
+            assertArrayEquals(pdfContent, result.get());
 
             verify(rptRepository).findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L);
             verify(stampeMapper).toReceipt(versamento, rpt);
@@ -202,9 +190,8 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe generare PDF ricevuta senza RPT")
-        void shouldGenerateRicevutaPdfWithoutRpt() throws Exception {
-            File pdfFile = tempDir.resolve("ricevuta_no_rpt.pdf").toFile();
-            Files.write(pdfFile.toPath(), "Receipt PDF without RPT".getBytes());
+        void shouldGenerateRicevutaPdfWithoutRpt() {
+            byte[] pdfContent = "Receipt PDF without RPT".getBytes();
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
@@ -213,7 +200,7 @@ class StampeServiceTest {
             when(stampeMapper.toReceipt(versamento, null))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
-                    .thenReturn(pdfFile);
+                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
 
@@ -223,9 +210,8 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe restituire RPT più recente quando ce ne sono multiple")
-        void shouldReturnMostRecentRptWhenMultipleExist() throws Exception {
-            File pdfFile = tempDir.resolve("ricevuta.pdf").toFile();
-            Files.write(pdfFile.toPath(), "Receipt PDF".getBytes());
+        void shouldReturnMostRecentRptWhenMultipleExist() {
+            byte[] pdfContent = "Receipt PDF".getBytes();
 
             Rpt recentRpt = Rpt.builder()
                     .id(2L)
@@ -244,7 +230,7 @@ class StampeServiceTest {
             when(stampeMapper.toReceipt(versamento, recentRpt))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
-                    .thenReturn(pdfFile);
+                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
 
@@ -266,7 +252,7 @@ class StampeServiceTest {
 
         @Test
         @DisplayName("Dovrebbe restituire empty quando si verifica un errore nella generazione")
-        void shouldReturnEmptyWhenGenerationFails() throws Exception {
+        void shouldReturnEmptyWhenGenerationFails() {
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
             when(rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L))

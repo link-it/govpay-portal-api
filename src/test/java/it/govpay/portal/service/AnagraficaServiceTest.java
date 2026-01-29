@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamento;
 import it.govpay.portal.entity.TipoVersamentoDominio;
+import it.govpay.portal.exception.UnauthorizedException;
 import it.govpay.portal.mapper.AnagraficaMapper;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.ListaDomini;
@@ -96,6 +97,34 @@ class AnagraficaServiceTest {
             assertEquals("RSSMRA80A01H501U", profilo.getAnagrafica().getIdentificativo());
             assertEquals("Mario Rossi", profilo.getAnagrafica().getAnagrafica());
             assertEquals("mario.rossi@email.it", profilo.getAnagrafica().getEmail());
+        }
+
+        @Test
+        @DisplayName("Dovrebbe lanciare UnauthorizedException quando autenticazione è null")
+        void shouldThrowUnauthorizedExceptionWhenAuthenticationIsNull() {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            when(securityContext.getAuthentication()).thenReturn(null);
+            SecurityContextHolder.setContext(securityContext);
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> anagraficaService.getProfilo());
+
+            assertEquals("Autenticazione non presente", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Dovrebbe lanciare UnauthorizedException quando principal non è SpidUserDetails")
+        void shouldThrowUnauthorizedExceptionWhenPrincipalIsNotSpidUserDetails() {
+            // Simula un utente anonimo (principal è una stringa)
+            Authentication authentication = new UsernamePasswordAuthenticationToken("UTENTE_ANONIMO", null);
+            SecurityContext securityContext = mock(SecurityContext.class);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            SecurityContextHolder.setContext(securityContext);
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> anagraficaService.getProfilo());
+
+            assertEquals("Utente non autenticato tramite SPID", exception.getMessage());
         }
     }
 
