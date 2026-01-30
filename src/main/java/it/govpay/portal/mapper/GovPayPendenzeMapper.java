@@ -11,6 +11,7 @@ import it.govpay.pendenze.client.model.Soggetto;
 import it.govpay.pendenze.client.model.TassonomiaAvviso;
 import it.govpay.pendenze.client.model.TipoContabilita;
 import it.govpay.pendenze.client.model.TipoSoggetto;
+import it.govpay.portal.entity.CausaleUtils;
 import it.govpay.portal.entity.SingoloVersamento;
 import it.govpay.portal.entity.Versamento;
 
@@ -36,7 +37,7 @@ public class GovPayPendenzeMapper {
             pendenza.setIdUnitaOperativa(versamento.getUo().getCodUo());
         }
 
-        pendenza.setCausale(versamento.getCausaleVersamento());
+        pendenza.setCausale(CausaleUtils.getSimple(versamento.getCausaleVersamento()));
         pendenza.setImporto(versamento.getImportoTotale());
         pendenza.setNumeroAvviso(versamento.getNumeroAvviso());
         pendenza.setTassonomia(versamento.getTassonomia());

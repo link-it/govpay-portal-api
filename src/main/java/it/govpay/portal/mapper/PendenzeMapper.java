@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import it.govpay.portal.entity.CausaleUtils;
 import it.govpay.portal.entity.SingoloVersamento;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
@@ -52,7 +53,7 @@ public class PendenzeMapper {
 
         pendenza.setStato(mapStatoVersamento(entity.getStatoVersamento()));
         pendenza.setIuv(entity.getIuvVersamento());
-        pendenza.setCausale(entity.getCausaleVersamento());
+        pendenza.setCausale(CausaleUtils.getSimple(entity.getCausaleVersamento()));
         pendenza.setImporto(entity.getImportoTotale());
         pendenza.setNumeroAvviso(entity.getNumeroAvviso());
 
@@ -150,7 +151,7 @@ public class PendenzeMapper {
         
         Avviso rsModel = new Avviso();
 
-        rsModel.setDescrizione(versamento.getCausaleVersamento());
+        rsModel.setDescrizione(CausaleUtils.getSimple(versamento.getCausaleVersamento()));
 
         if (versamento.getDataScadenza() != null) {
             rsModel.setDataScadenza(versamento.getDataScadenza().toLocalDate());
@@ -228,7 +229,7 @@ public class PendenzeMapper {
 
         Ricevuta ricevuta = new Ricevuta();
 
-        ricevuta.setOggettoDelPagamento(versamento.getCausaleVersamento());
+        ricevuta.setOggettoDelPagamento(CausaleUtils.getSimple(versamento.getCausaleVersamento()));
 
         if (versamento.getDominio() != null) {
             Dominio dominio = new Dominio();
@@ -265,8 +266,8 @@ public class PendenzeMapper {
         }
         if (voci.isEmpty()) {
             VoceRicevuta voce = new VoceRicevuta();
-            voce.setDescrizione(versamento.getCausaleVersamento() != null ?
-                    versamento.getCausaleVersamento() : "Pagamento");
+            String causale = CausaleUtils.getSimple(versamento.getCausaleVersamento());
+            voce.setDescrizione(causale != null ? causale : "Pagamento");
             voce.setIdRiscossione("1");
             voce.setImporto(versamento.getImportoTotale() != null ?
                     versamento.getImportoTotale().doubleValue() : 0.0);
