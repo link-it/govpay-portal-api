@@ -94,7 +94,7 @@ public class StampeMapper {
 
         // Importo e dati pagamento
         Amount fullAmount = new Amount();
-        fullAmount.setAmount(versamento.getImportoTotale().doubleValue());
+        fullAmount.setAmount(versamento.getImportoTotale());
         fullAmount.setNoticeNumber(versamento.getNumeroAvviso());
         fullAmount.setQrcode(IuvUtils.buildQrCode002(dominio.getCodDominio(), 0, 0, null,
                 BigDecimal.valueOf(versamento.getImportoTotale()), versamento.getNumeroAvviso()));
@@ -148,19 +148,13 @@ public class StampeMapper {
         organization.setLocation("");
         receipt.setOrganization(organization);
 
-        // Pagatore
-        Payer payer = new Payer();
-        payer.setFiscalCode(versamento.getDebitoreIdentificativo());
-        payer.setFullName(versamento.getDebitoreAnagrafica());
-        payer.setAddress(versamento.getDebitoreIndirizzo() != null ? versamento.getDebitoreIndirizzo() : "");
-        payer.setLocation(buildPayerLocation(versamento));
-        receipt.setPayer(payer);
+        toPayer(versamento, receipt);
 
         // PSP - placeholder, normalmente estratto dall'XML RT
         receipt.setPsp("N/D");
 
         // Importo
-        receipt.setAmount(versamento.getImportoTotale().doubleValue());
+        receipt.setAmount(versamento.getImportoTotale());
 
         // Date
         if (versamento.getDataPagamento() != null) {
@@ -175,9 +169,8 @@ public class StampeMapper {
         receipt.setStatus(mapReceiptStatus(versamento.getStatoVersamento()));
 
         // IUV e ID ricevuta
-        receipt.setCreditorReferenceId(versamento.getIuvVersamento() != null ? versamento.getIuvVersamento() : "");
-        receipt.setReceiptId(rpt != null && rpt.getCcp() != null ? rpt.getCcp() :
-                (versamento.getIdSessione() != null ? versamento.getIdSessione() : ""));
+        receipt.setCreditorReferenceId(rpt.getIuv());
+        receipt.setReceiptId(rpt.getCcp());
 
         // Versione oggetto - da RPT o default
         receipt.setObjectVersion(mapVersione(rpt));
@@ -195,15 +188,6 @@ public class StampeMapper {
                 items.add(item);
             }
         }
-        if (items.isEmpty()) {
-            // Aggiungi almeno una voce
-            ReceiptItem item = new ReceiptItem();
-            item.setDescription(causale != null ? causale : "Pagamento");
-            item.setIur("1");
-            item.setAmount(versamento.getImportoTotale().doubleValue());
-            item.setStatus(ReceiptItemStatus.EXECUTED);
-            items.add(item);
-        }
         receipt.setItems(items);
 
         // Logo
@@ -215,6 +199,16 @@ public class StampeMapper {
 
         return receipt;
     }
+
+	private void toPayer(Versamento versamento, Receipt receipt) {
+		// Pagatore
+        Payer payer = new Payer();
+        payer.setFiscalCode(versamento.getDebitoreIdentificativo());
+        payer.setFullName(versamento.getDebitoreAnagrafica());
+        payer.setAddress(versamento.getDebitoreIndirizzo() != null ? versamento.getDebitoreIndirizzo() : "");
+        payer.setLocation(buildPayerLocation(versamento));
+        receipt.setPayer(payer);
+	}
 
     private Languages mapLinguaSecondaria(LinguaSecondaria lingua) {
         if (lingua == null || lingua == LinguaSecondaria.FALSE) return null;

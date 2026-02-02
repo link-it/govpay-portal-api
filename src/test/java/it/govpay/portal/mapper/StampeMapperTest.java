@@ -279,17 +279,6 @@ class StampeMapperTest {
         }
 
         @Test
-        @DisplayName("Dovrebbe gestire Receipt senza RPT")
-        void shouldCreateReceiptWithoutRpt() {
-            versamento.setIdSessione("SESSION123");
-            Receipt receipt = stampeMapper.toReceipt(versamento, null);
-
-            assertNotNull(receipt);
-            assertEquals(ReceiptVersion._240, receipt.getObjectVersion());
-            assertEquals("SESSION123", receipt.getReceiptId()); // Uses idSessione as fallback
-        }
-
-        @Test
         @DisplayName("Dovrebbe mappare stato ESEGUITO correttamente")
         void shouldMapEseguitoStatus() {
             versamento.setStatoVersamento(StatoVersamento.ESEGUITO);
@@ -370,19 +359,6 @@ class StampeMapperTest {
             assertEquals(80.50, receipt.getItems().get(0).getAmount());
             assertEquals("Quota variabile TARI", receipt.getItems().get(1).getDescription());
             assertEquals(70.00, receipt.getItems().get(1).getAmount());
-        }
-
-        @Test
-        @DisplayName("Dovrebbe creare Receipt con voce singola quando non ci sono singoli versamenti")
-        void shouldCreateReceiptWithSingleItemWhenNoSingoliVersamenti() {
-            versamento.setSingoliVersamenti(new ArrayList<>());
-
-            Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
-
-            assertNotNull(receipt.getItems());
-            assertEquals(1, receipt.getItems().size());
-            assertEquals("Pagamento TARI 2024", receipt.getItems().get(0).getDescription());
-            assertEquals(150.50, receipt.getItems().get(0).getAmount());
         }
 
         @Test

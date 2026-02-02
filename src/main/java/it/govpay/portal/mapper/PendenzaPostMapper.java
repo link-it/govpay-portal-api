@@ -48,7 +48,9 @@ public class PendenzaPostMapper {
         target.setIdTipoPendenza(source.getIdTipoPendenza());
         target.setIdUnitaOperativa(source.getIdUnitaOperativa());
         target.setCausale(source.getCausale());
-        target.setSoggettoPagatore(toClientSoggetto(source.getSoggettoPagatore()));
+        if(source.getSoggettoPagatore() != null) {
+        	target.setSoggettoPagatore(toClientSoggetto(source.getSoggettoPagatore()));
+        }
 
         if (source.getImporto() != null) {
             target.setImporto(source.getImporto().doubleValue());
@@ -71,16 +73,15 @@ public class PendenzaPostMapper {
         target.setDocumento(toClientDocumento(source.getDocumento()));
         target.setProprieta(toClientProprieta(source.getProprieta()));
         target.setVoci(toClientVoci(source.getVoci()));
-        target.setAllegati(toClientAllegati(source.getAllegati()));
+        
+        if(source.getAllegati() != null && !source.getAllegati().isEmpty()) {
+        	target.setAllegati(toClientAllegati(source.getAllegati()));
+        }
 
         return target;
     }
 
     private Soggetto toClientSoggetto(it.govpay.portal.beans.pendenza.Soggetto source) {
-        if (source == null) {
-            return null;
-        }
-
         Soggetto target = new Soggetto();
 
         if (source.getTipo() != null) {
@@ -273,10 +274,6 @@ public class PendenzaPostMapper {
     }
 
     private List<NuovoAllegatoPendenza> toClientAllegati(List<it.govpay.portal.beans.pendenza.NuovoAllegatoPendenza> source) {
-        if (source == null || source.isEmpty()) {
-            return null;
-        }
-
         List<NuovoAllegatoPendenza> result = new ArrayList<>();
         for (it.govpay.portal.beans.pendenza.NuovoAllegatoPendenza a : source) {
             NuovoAllegatoPendenza allegato = new NuovoAllegatoPendenza();
