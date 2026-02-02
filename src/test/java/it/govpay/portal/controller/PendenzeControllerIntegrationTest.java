@@ -225,63 +225,6 @@ class PendenzeControllerIntegrationTest {
         assertEquals("TARI-2024", pendenzaInviata.getVoci().get(0).getIdVocePendenza());
     }
 
-    @Test
-    @DisplayName("POST pendenze - Con utente SPID autenticato")
-    void testCreaPendenza_ConUtenteSpid() throws Exception {
-        // Given
-        String requestBody = """
-            {
-                "idA2A": "APP_PORTAL",
-                "idPendenza": "PEND-SPID-001",
-                "importo": 100.00,
-                "causale": "Test con SPID",
-                "voci": [{
-                    "idVocePendenza": "VOCE001",
-                    "importo": 100.00,
-                    "descrizione": "Voce test SPID",
-                    "codEntrata": "ENTRATA_TEST"
-                }]
-            }
-            """;
-
-        when(tipoVersamentoDominioRepository.findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(
-                ID_DOMINIO, ID_TIPO_PENDENZA))
-                .thenReturn(Optional.of(tipoVersamentoDominio));
-
-        PendenzaCreata pendenzaCreata = new PendenzaCreata();
-        pendenzaCreata.setIdDominio(ID_DOMINIO);
-        pendenzaCreata.setNumeroAvviso("301000000000000003");
-
-        ArgumentCaptor<NuovaPendenza> pendenzaCaptor = ArgumentCaptor.forClass(NuovaPendenza.class);
-
-        when(pendenzeApi.addPendenza(eq(COD_APPLICAZIONE), anyString(), eq(false), isNull(), pendenzaCaptor.capture()))
-                .thenReturn(pendenzaCreata);
-
-        // When - Simula utente SPID autenticato
-        mockMvc.perform(post("/pendenze/{idDominio}/{idTipoPendenza}", ID_DOMINIO, ID_TIPO_PENDENZA)
-                        .with(csrf())
-                        .with(authentication(createSpidAuthentication("VRDGPP80A01H501X", "Giuseppe", "Verdi", "giuseppe.verdi@email.it")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk());
-
-        // Then - Verifica che il soggetto pagatore sia stato impostato da SPID
-        NuovaPendenza pendenzaInviata = pendenzaCaptor.getValue();
-
-        // Verifica che sia il body corretto
-        assertEquals("Test con SPID", pendenzaInviata.getCausale(),
-                "La causale deve essere quella del test SPID");
-        assertEquals(100.00, pendenzaInviata.getImporto(), 0.01,
-                "L'importo deve essere quello del test SPID");
-
-        // Verifica soggetto pagatore da SPID
-        assertNotNull(pendenzaInviata.getSoggettoPagatore(),
-                "Il soggetto pagatore deve essere impostato da SPID");
-        assertEquals("VRDGPP80A01H501X", pendenzaInviata.getSoggettoPagatore().getIdentificativo(),
-                "L'identificativo deve provenire da SPID");
-        assertEquals("Giuseppe Verdi", pendenzaInviata.getSoggettoPagatore().getAnagrafica(),
-                "L'anagrafica deve provenire da SPID");
-    }
 
     @Test
     @DisplayName("POST pendenze - Tipo pendenza non trovato restituisce 404")

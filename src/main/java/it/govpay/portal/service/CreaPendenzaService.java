@@ -141,9 +141,6 @@ public class CreaPendenzaService {
         pendenzaPost.setIdDominio(idDominio);
         pendenzaPost.setIdTipoPendenza(idTipoPendenza);
 
-        // 7. Imposta soggetto pagatore da SPID se autenticato
-        impostaSoggettoPagatoreDaSpid(pendenzaPost);
-
         // 8. Valida la pendenza
         new PendenzaPostValidator(pendenzaPost).validate();
 
@@ -272,33 +269,6 @@ public class CreaPendenzaService {
         }
 
         return builder.build();
-    }
-
-    /**
-     * Imposta il soggetto pagatore dai dati SPID se l'utente è autenticato.
-     */
-    private void impostaSoggettoPagatoreDaSpid(PendenzaPost pendenzaPost) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof SpidUserDetails spidUser) {
-            // Se non è già impostato un soggetto pagatore, usa i dati SPID
-            if (pendenzaPost.getSoggettoPagatore() == null) {
-                it.govpay.portal.beans.pendenza.Soggetto soggetto =
-                        new it.govpay.portal.beans.pendenza.Soggetto();
-                soggetto.setTipo(it.govpay.portal.beans.pendenza.Soggetto.TipoEnum.F);
-                soggetto.setIdentificativo(spidUser.getFiscalNumber());
-
-                String anagrafica = spidUser.getName();
-                if (StringUtils.hasText(spidUser.getFamilyName())) {
-                    anagrafica = anagrafica + " " + spidUser.getFamilyName();
-                }
-                soggetto.setAnagrafica(anagrafica);
-                soggetto.setEmail(spidUser.getEmail());
-
-                pendenzaPost.setSoggettoPagatore(soggetto);
-
-                log.debug("Soggetto pagatore impostato da SPID: {}", spidUser.getFiscalNumber());
-            }
-        }
     }
 
     /**
