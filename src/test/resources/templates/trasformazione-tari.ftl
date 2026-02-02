@@ -1,4 +1,6 @@
 {
+    "idA2A": "APP_PORTAL",
+    "idPendenza": "${transactionId}",
     "causale": "Tassa rifiuti ${jsonPath.read("$.annoRiferimento")} - ${jsonPath.read("$.nome")} ${jsonPath.read("$.cognome")}",
     "importo": ${jsonPath.read("$.importo")},
     "dataScadenza": "${jsonPath.read("$.dataScadenza")}",
@@ -11,6 +13,7 @@
     "voci": [{
         "idVocePendenza": "TARI-${jsonPath.read("$.annoRiferimento")}",
         "importo": ${jsonPath.read("$.importo")},
-        "descrizione": "Tassa rifiuti anno ${jsonPath.read("$.annoRiferimento")}"
+        "descrizione": "Tassa rifiuti anno ${jsonPath.read("$.annoRiferimento")}",
+        "codEntrata": "TARI"
     }]
 }

@@ -80,6 +80,21 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("ValidationException dovrebbe restituire 422 con messaggio errore")
+    void shouldReturn422ForValidationException() {
+        ValidationException ex = new ValidationException("Il campo causale non deve essere vuoto.");
+
+        ResponseEntity<Errore> response = handler.handleValidationException(ex);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("VALIDAZIONE", response.getBody().getCodice());
+        assertEquals("RICHIESTA", response.getBody().getCategoria());
+        assertEquals("Errore di validazione", response.getBody().getDescrizione());
+        assertEquals("Il campo causale non deve essere vuoto.", response.getBody().getDettaglio());
+    }
+
+    @Test
     @DisplayName("UnprocessableEntityException dovrebbe restituire 422")
     void shouldReturn422ForUnprocessableEntityException() {
         UnprocessableEntityException ex = new UnprocessableEntityException("Dati non processabili");

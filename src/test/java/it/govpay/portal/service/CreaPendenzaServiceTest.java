@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,6 +32,8 @@ import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.exception.BadRequestException;
 import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.exception.UnprocessableEntityException;
+import it.govpay.portal.exception.ValidationException;
+import it.govpay.portal.mapper.PendenzaPostMapper;
 import it.govpay.portal.mapper.PendenzeMapper;
 import it.govpay.portal.model.Pendenza;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
@@ -46,6 +50,8 @@ class CreaPendenzaServiceTest {
     @Mock
     private PendenzeMapper pendenzeMapper;
 
+    private PendenzaPostMapper pendenzaPostMapper;
+
     @InjectMocks
     private CreaPendenzaService creaPendenzaService;
 
@@ -58,10 +64,12 @@ class CreaPendenzaServiceTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        pendenzaPostMapper = new PendenzaPostMapper();
         creaPendenzaService = new CreaPendenzaService(
                 tipoVersamentoDominioRepository,
                 pendenzeApi,
                 pendenzeMapper,
+                pendenzaPostMapper,
                 objectMapper);
 
         // Setup test entities
@@ -92,9 +100,7 @@ class CreaPendenzaServiceTest {
         // Given
         String idDominio = "01234567890";
         String idTipoPendenza = "TIPO_TEST";
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("importo", 100.50);
-        requestBody.put("causale", "Test causale");
+        Map<String, Object> requestBody = createValidRequestBody();
 
         when(tipoVersamentoDominioRepository.findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(
                 idDominio, idTipoPendenza))
@@ -196,6 +202,8 @@ class CreaPendenzaServiceTest {
         // Template FreeMarker semplice
         String template = """
             {
+                "idA2A": "APP_TEST",
+                "idPendenza": "${transactionId}",
                 "idDominio": "${idDominio}",
                 "idTipoPendenza": "${idTipoVersamento}",
                 "causale": "Pagamento per ${jsonPath.read("$.nome")} ${jsonPath.read("$.cognome")}",
@@ -208,7 +216,8 @@ class CreaPendenzaServiceTest {
                 "voci": [{
                     "idVocePendenza": "VOCE001",
                     "importo": ${jsonPath.read("$.importo")},
-                    "descrizione": "Voce di test"
+                    "descrizione": "Voce di test",
+                    "codEntrata": "ENTRATA_TEST"
                 }]
             }
             """;
@@ -257,8 +266,19 @@ class CreaPendenzaServiceTest {
         String idDominio = "01234567890";
         String idTipoPendenza = "TIPO_TEST";
         Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("idA2A", "APP_TEST");
+        requestBody.put("idPendenza", "PEND_SPID_001");
         requestBody.put("importo", 100.50);
         requestBody.put("causale", "Test causale");
+        // Aggiungo le voci necessarie per la validazione
+        List<Map<String, Object>> voci = new ArrayList<>();
+        Map<String, Object> voce = new HashMap<>();
+        voce.put("idVocePendenza", "VOCE001");
+        voce.put("importo", 100.50);
+        voce.put("descrizione", "Voce di test");
+        voce.put("codEntrata", "ENTRATA_TEST");
+        voci.add(voce);
+        requestBody.put("voci", voci);
 
         // Setup SPID user
         SpidUserDetails spidUser = mock(SpidUserDetails.class);
@@ -339,20 +359,31 @@ class CreaPendenzaServiceTest {
     }
 
     @Test
-    void testCreaPendenza_MissingCodApplicazione() {
-        // Given
+    void testCreaPendenza_ValidationFailure_MancaIdA2A() {
+        // Given - request body senza idA2A
         String idDominio = "01234567890";
         String idTipoPendenza = "TIPO_TEST";
         Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("idPendenza", "PEND_001");
+        requestBody.put("causale", "Test causale");
+        requestBody.put("importo", 100.50);
+        // Manca idA2A
 
-        tipoVersamentoDominio.setPagCodApplicazione(null);
+        List<Map<String, Object>> voci = new ArrayList<>();
+        Map<String, Object> voce = new HashMap<>();
+        voce.put("idVocePendenza", "VOCE001");
+        voce.put("importo", 100.50);
+        voce.put("descrizione", "Voce di test");
+        voce.put("codEntrata", "ENTRATA_TEST");
+        voci.add(voce);
+        requestBody.put("voci", voci);
 
         when(tipoVersamentoDominioRepository.findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(
                 idDominio, idTipoPendenza))
                 .thenReturn(Optional.of(tipoVersamentoDominio));
 
-        // When/Then - senza idA2A e senza codApplicazione configurato
-        assertThrows(BadRequestException.class, () ->
+        // When/Then
+        ValidationException exception = assertThrows(ValidationException.class, () ->
                 creaPendenzaService.creaPendenza(
                         idDominio,
                         idTipoPendenza,
@@ -362,6 +393,8 @@ class CreaPendenzaServiceTest {
                         new HashMap<>(),
                         new HashMap<>(),
                         new HashMap<>()));
+
+        assertTrue(exception.getMessage().contains("idA2A"));
     }
 
     @Test
@@ -370,8 +403,7 @@ class CreaPendenzaServiceTest {
         String idDominio = "01234567890";
         String idTipoPendenza = "TIPO_TEST";
         String idA2A = "APP_CUSTOM";
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("importo", 100.50);
+        Map<String, Object> requestBody = createValidRequestBody();
 
         tipoVersamentoDominio.setPagCodApplicazione(null); // non configurato
 
@@ -406,5 +438,105 @@ class CreaPendenzaServiceTest {
         // Then
         assertNotNull(result);
         verify(pendenzeApi).addPendenza(eq(idA2A), anyString(), anyBoolean(), any(), any(NuovaPendenza.class));
+    }
+
+    @Test
+    void testCreaPendenza_ValidationFailure_MancaCausale() {
+        // Given - request body senza causale
+        String idDominio = "01234567890";
+        String idTipoPendenza = "TIPO_TEST";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("idA2A", "APP_TEST");
+        requestBody.put("idPendenza", "PEND_001");
+        requestBody.put("importo", 100.50);
+        // Manca causale
+
+        List<Map<String, Object>> voci = new ArrayList<>();
+        Map<String, Object> voce = new HashMap<>();
+        voce.put("idVocePendenza", "VOCE001");
+        voce.put("importo", 100.50);
+        voce.put("descrizione", "Voce di test");
+        voce.put("codEntrata", "ENTRATA_TEST");
+        voci.add(voce);
+        requestBody.put("voci", voci);
+
+        when(tipoVersamentoDominioRepository.findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(
+                idDominio, idTipoPendenza))
+                .thenReturn(Optional.of(tipoVersamentoDominio));
+
+        // When/Then
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                creaPendenzaService.creaPendenza(
+                        idDominio,
+                        idTipoPendenza,
+                        requestBody,
+                        null,
+                        null,
+                        new HashMap<>(),
+                        new HashMap<>(),
+                        new HashMap<>()));
+
+        // Verifica che l'eccezione contenga il messaggio sulla causale
+        assertTrue(exception.getMessage().contains("causale"));
+    }
+
+    @Test
+    void testCreaPendenza_ValidationFailure_MancaVoci() {
+        // Given - request body senza voci
+        String idDominio = "01234567890";
+        String idTipoPendenza = "TIPO_TEST";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("idA2A", "APP_TEST");
+        requestBody.put("idPendenza", "PEND_001");
+        requestBody.put("importo", 100.50);
+        requestBody.put("causale", "Test causale");
+        // Manca voci
+
+        when(tipoVersamentoDominioRepository.findByDominioCodDominioAndTipoVersamentoCodTipoVersamento(
+                idDominio, idTipoPendenza))
+                .thenReturn(Optional.of(tipoVersamentoDominio));
+
+        // When/Then
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                creaPendenzaService.creaPendenza(
+                        idDominio,
+                        idTipoPendenza,
+                        requestBody,
+                        null,
+                        null,
+                        new HashMap<>(),
+                        new HashMap<>(),
+                        new HashMap<>()));
+
+        // Verifica che l'eccezione contenga il messaggio sulle voci
+        assertTrue(exception.getMessage().contains("voci"));
+    }
+
+    /**
+     * Crea un requestBody valido per la validazione della pendenza.
+     */
+    private Map<String, Object> createValidRequestBody() {
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("idA2A", "APP_TEST");
+        requestBody.put("idPendenza", "PEND_001");
+        requestBody.put("causale", "Test causale");
+        requestBody.put("importo", 100.50);
+
+        Map<String, Object> soggettoPagatore = new HashMap<>();
+        soggettoPagatore.put("tipo", "F");
+        soggettoPagatore.put("identificativo", "RSSMRA80A01H501U");
+        soggettoPagatore.put("anagrafica", "Mario Rossi");
+        requestBody.put("soggettoPagatore", soggettoPagatore);
+
+        List<Map<String, Object>> voci = new ArrayList<>();
+        Map<String, Object> voce = new HashMap<>();
+        voce.put("idVocePendenza", "VOCE001");
+        voce.put("importo", 100.50);
+        voce.put("descrizione", "Voce di test");
+        voce.put("codEntrata", "ENTRATA_TEST");
+        voci.add(voce);
+        requestBody.put("voci", voci);
+
+        return requestBody;
     }
 }

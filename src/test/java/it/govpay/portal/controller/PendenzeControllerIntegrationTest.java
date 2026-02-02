@@ -114,6 +114,8 @@ class PendenzeControllerIntegrationTest {
         // Given - Body JSON diretto (senza trasformazione)
         String requestBody = """
             {
+                "idA2A": "APP_PORTAL",
+                "idPendenza": "PEND-TEST-001",
                 "causale": "Tassa rifiuti 2024",
                 "importo": 150.50,
                 "soggettoPagatore": {
@@ -125,7 +127,8 @@ class PendenzeControllerIntegrationTest {
                 "voci": [{
                     "idVocePendenza": "VOCE001",
                     "importo": 150.50,
-                    "descrizione": "Tassa rifiuti anno 2024"
+                    "descrizione": "Tassa rifiuti anno 2024",
+                    "codEntrata": "TARI"
                 }]
             }
             """;
@@ -228,8 +231,16 @@ class PendenzeControllerIntegrationTest {
         // Given
         String requestBody = """
             {
+                "idA2A": "APP_PORTAL",
+                "idPendenza": "PEND-SPID-001",
                 "importo": 100.00,
-                "causale": "Test con SPID"
+                "causale": "Test con SPID",
+                "voci": [{
+                    "idVocePendenza": "VOCE001",
+                    "importo": 100.00,
+                    "descrizione": "Voce test SPID",
+                    "codEntrata": "ENTRATA_TEST"
+                }]
             }
             """;
 
@@ -333,8 +344,11 @@ class PendenzeControllerIntegrationTest {
         String idA2ACustom = "APP_CUSTOM";
         String idPendenzaCustom = "PEND-2024-001";
 
+        // idA2A e idPendenza nel body verranno sovrascritti dai parametri query
         String requestBody = """
             {
+                "idA2A": "APP_PORTAL",
+                "idPendenza": "PEND-DEFAULT",
                 "causale": "Test con parametri custom",
                 "importo": 75.00,
                 "soggettoPagatore": {
@@ -345,7 +359,8 @@ class PendenzeControllerIntegrationTest {
                 "voci": [{
                     "idVocePendenza": "VOCE001",
                     "importo": 75.00,
-                    "descrizione": "Voce test"
+                    "descrizione": "Voce test",
+                    "codEntrata": "ENTRATA_TEST"
                 }]
             }
             """;

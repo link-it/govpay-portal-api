@@ -53,6 +53,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errore);
     }
 
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Errore> handleValidationException(ValidationException ex) {
+        Errore errore = new Errore();
+        errore.setCategoria("RICHIESTA");
+        errore.setCodice("VALIDAZIONE");
+        errore.setDescrizione("Errore di validazione");
+        errore.setDettaglio(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errore);
+    }
+
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<Errore> handleUnprocessableEntityException(UnprocessableEntityException ex) {
         Errore errore = new Errore();

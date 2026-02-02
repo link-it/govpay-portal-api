@@ -22,17 +22,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.govpay.pendenze.client.api.PendenzeApi;
 import it.govpay.pendenze.client.model.NuovaPendenza;
 import it.govpay.pendenze.client.model.PendenzaCreata;
+import it.govpay.portal.beans.pendenza.PendenzaPost;
+import it.govpay.portal.beans.pendenza.PendenzaPostValidator;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.exception.BadRequestException;
 import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.exception.UnprocessableEntityException;
+import it.govpay.portal.mapper.PendenzaPostMapper;
 import it.govpay.portal.mapper.PendenzeMapper;
 import it.govpay.portal.model.Pendenza;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
-import it.govpay.portal.utils.trasformazioni.Costanti;
-import it.govpay.portal.utils.trasformazioni.JsonPathExtractor;
-import it.govpay.portal.utils.trasformazioni.RegExpExtractor;
 import it.govpay.portal.utils.trasformazioni.TransformationContext;
 import it.govpay.portal.utils.trasformazioni.TrasformazioniUtils;
 import it.govpay.portal.utils.trasformazioni.exception.TrasformazioneException;
@@ -52,16 +52,19 @@ public class CreaPendenzaService {
     private final TipoVersamentoDominioRepository tipoVersamentoDominioRepository;
     private final PendenzeApi pendenzeApi;
     private final PendenzeMapper pendenzeMapper;
+    private final PendenzaPostMapper pendenzaPostMapper;
     private final ObjectMapper objectMapper;
 
     public CreaPendenzaService(
             TipoVersamentoDominioRepository tipoVersamentoDominioRepository,
             PendenzeApi pendenzeApi,
             PendenzeMapper pendenzeMapper,
+            PendenzaPostMapper pendenzaPostMapper,
             ObjectMapper objectMapper) {
         this.tipoVersamentoDominioRepository = tipoVersamentoDominioRepository;
         this.pendenzeApi = pendenzeApi;
         this.pendenzeMapper = pendenzeMapper;
+        this.pendenzaPostMapper = pendenzaPostMapper;
         this.objectMapper = objectMapper;
     }
 
@@ -123,31 +126,46 @@ public class CreaPendenzaService {
                     pathParams);
         }
 
-        // 5. Parse il JSON trasformato in NuovaPendenza
-        NuovaPendenza nuovaPendenza;
+        // 5. Parse il JSON trasformato in PendenzaPost (bean interno)
+        PendenzaPost pendenzaPost;
         try {
-            nuovaPendenza = objectMapper.readValue(trasformatoJson, NuovaPendenza.class);
+            pendenzaPost = objectMapper.readValue(trasformatoJson, PendenzaPost.class);
         } catch (JsonProcessingException e) {
             log.error("Errore nel parsing del JSON trasformato: {}", e.getMessage());
             throw new UnprocessableEntityException(
                     "Errore nel parsing del risultato della trasformazione: " + e.getMessage());
         }
 
-        // 6. Imposta valori obbligatori
-        nuovaPendenza.setIdDominio(idDominio);
-        nuovaPendenza.setIdTipoPendenza(idTipoPendenza);
+        // 6. Imposto i dati idDominio e idTipoPendenza forniti nella URL di richiesta,
+        // sovrascrivendo eventuali valori impostati dalla trasformazione.
+        pendenzaPost.setIdDominio(idDominio);
+        pendenzaPost.setIdTipoPendenza(idTipoPendenza);
 
-        // Imposta soggetto pagatore da SPID se autenticato
-        impostaSoggettoPagatoreDaSpid(nuovaPendenza);
+        // 7. Imposta soggetto pagatore da SPID se autenticato
+        impostaSoggettoPagatoreDaSpid(pendenzaPost);
 
-        // 7. Genera idA2A e idPendenza se non forniti
-        String codApplicazione = determinaCodApplicazione(tipoVersamentoDominio, idA2A);
-        String codPendenza = determinaCodPendenza(idPendenza);
+        // 8. Valida la pendenza
+        new PendenzaPostValidator(pendenzaPost).validate();
 
-        // 8. Chiama l'API GovPay per creare la pendenza
+        // 9. Se forniti idA2A e idPendenza nella richiesta, sovrascrivo quelli della pendenza (per update)
+        if (StringUtils.hasText(idA2A)) {
+            pendenzaPost.setIdA2A(idA2A);
+        }
+        if (StringUtils.hasText(idPendenza)) {
+            pendenzaPost.setIdPendenza(idPendenza);
+        }
+
+        // 10. Converti PendenzaPost in NuovaPendenza (bean client GovPay)
+        NuovaPendenza nuovaPendenza = pendenzaPostMapper.toNuovaPendenza(pendenzaPost);
+
+        // 11. Preleva idA2A e idPendenza da usare per la chiamata API
+        String codApplicazione = pendenzaPost.getIdA2A();
+        String codPendenza = pendenzaPost.getIdPendenza();
+
+        // 12. Chiama l'API GovPay per creare la pendenza
         PendenzaCreata pendenzaCreata = chiamaApiGovPay(codApplicazione, codPendenza, nuovaPendenza);
 
-        // 9. Converti la risposta nel modello portal
+        // 13. Converti la risposta nel modello portal
         return pendenzeMapper.toPendenzaFromCreata(pendenzaCreata, nuovaPendenza);
     }
 
@@ -259,14 +277,14 @@ public class CreaPendenzaService {
     /**
      * Imposta il soggetto pagatore dai dati SPID se l'utente è autenticato.
      */
-    private void impostaSoggettoPagatoreDaSpid(NuovaPendenza nuovaPendenza) {
+    private void impostaSoggettoPagatoreDaSpid(PendenzaPost pendenzaPost) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof SpidUserDetails spidUser) {
             // Se non è già impostato un soggetto pagatore, usa i dati SPID
-            if (nuovaPendenza.getSoggettoPagatore() == null) {
-                it.govpay.pendenze.client.model.Soggetto soggetto =
-                        new it.govpay.pendenze.client.model.Soggetto();
-                soggetto.setTipo(it.govpay.pendenze.client.model.TipoSoggetto.F);
+            if (pendenzaPost.getSoggettoPagatore() == null) {
+                it.govpay.portal.beans.pendenza.Soggetto soggetto =
+                        new it.govpay.portal.beans.pendenza.Soggetto();
+                soggetto.setTipo(it.govpay.portal.beans.pendenza.Soggetto.TipoEnum.F);
                 soggetto.setIdentificativo(spidUser.getFiscalNumber());
 
                 String anagrafica = spidUser.getName();
@@ -276,36 +294,11 @@ public class CreaPendenzaService {
                 soggetto.setAnagrafica(anagrafica);
                 soggetto.setEmail(spidUser.getEmail());
 
-                nuovaPendenza.setSoggettoPagatore(soggetto);
+                pendenzaPost.setSoggettoPagatore(soggetto);
 
                 log.debug("Soggetto pagatore impostato da SPID: {}", spidUser.getFiscalNumber());
             }
         }
-    }
-
-    /**
-     * Determina il codice applicazione da usare.
-     */
-    private String determinaCodApplicazione(TipoVersamentoDominio tipoVersamentoDominio, String idA2A) {
-        if (StringUtils.hasText(idA2A)) {
-            return idA2A;
-        }
-        if (StringUtils.hasText(tipoVersamentoDominio.getPagCodApplicazione())) {
-            return tipoVersamentoDominio.getPagCodApplicazione();
-        }
-        throw new BadRequestException(
-                "Codice applicazione non specificato e non configurato per il tipo pendenza");
-    }
-
-    /**
-     * Determina il codice pendenza da usare.
-     */
-    private String determinaCodPendenza(String idPendenza) {
-        if (StringUtils.hasText(idPendenza)) {
-            return idPendenza;
-        }
-        // Genera un ID univoco
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 20);
     }
 
     /**

@@ -56,9 +56,10 @@ public class TransformationContext {
 
     /**
      * Genera e aggiunge un ID transazione casuale al contesto.
+     * L'UUID viene generato senza trattini per rispettare il pattern idPendenza GovPay (max 35 caratteri).
      */
     public TransformationContext withRandomTransactionId() {
-        context.put(Costanti.MAP_TRANSACTION_ID_OBJECT, UUID.randomUUID().toString());
+        context.put(Costanti.MAP_TRANSACTION_ID_OBJECT, UUID.randomUUID().toString().replace("-", ""));
         return this;
     }
 
