@@ -1,3 +1,34 @@
+2025-02-04  Giuliano Pintori <pintori@link.it>
+
+	* [Bug Fix]
+	Corretta serializzazione date verso GovPay API.
+	Le date venivano inviate come array JSON [2027,1,31] invece che come
+	stringhe ISO-8601 "2027-01-31". Configurato ObjectMapper globale e
+	RestTemplate del client GovPay per disabilitare WRITE_DATES_AS_TIMESTAMPS.
+
+	* [Core]
+	Migliorata gestione errori nelle chiamate API GovPay.
+	Gli errori HTTP restituiti da GovPay vengono ora loggati e mappati
+	su risposta 502 Bad Gateway verso il client.
+	Aggiunta eccezione BadGatewayException con handler nel GlobalExceptionHandler.
+
+	* [Configurazione]
+	Aggiunta classe JacksonConfig per configurazione centralizzata ObjectMapper.
+	Configurato timezone Europe/Rome e formato date yyyy-MM-dd.
+	Aggiornata GovPayClientConfig con RestTemplate custom per serializzazione corretta.
+
+	* [Test]
+	Aggiunti test per aumentare la copertura del codice:
+	- Test ErroreValidazione e DettaglioErrore
+	- Test JacksonConfig per serializzazione date
+	- Test BadGatewayException
+	- Test completi per bean pendenza (VocePendenza, Documento, Contabilita, etc.)
+
+	* [Documentazione]
+	Aggiornato README.md nello stile dei nuovi progetti GovPay.
+	Aggiunta documentazione architettura, API endpoints, configurazione,
+	compilazione/esecuzione, e caratteristiche implementate.
+
 2025-01-21  Giuliano Pintori <pintori@link.it>
 
 	* Rilasciata versione 1.0.0
