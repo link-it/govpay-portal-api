@@ -1,17 +1,88 @@
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-# https://maven.apache.org/wrapper/#usage-without-binary-jar
-.mvn/wrapper/maven-wrapper.jar
-
-# Eclipse m2e generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
+*.class
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+# Package Files #
+*.jar
+*.war
+*.ear
+# exclude jar for gradle wrapper
+!gradle/wrapper/*.jar
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+# build files
+**/target
+target
+.gradle
+build
 .classpath
+.openapi-generator/
+.project
+.settings/
+.travis.yml
+build.gradle
+build.sbt
+git_push.sh
+gradle.properties
+gradle/
+gradlew
+gradlew.bat
+settings.gradle
+api/
+docs/
+
+
+
+# custom property filters
+#/src/main/resources/filters/*
+
+# maven version backups
+pom.xml.versionsBackup
+
+# compiled output
+/dist
+/tmp
+/out-tsc
+/target
+/bin
+_build
+buildcontext
+# swagger
+.swagger-codegen
+
+# dependencies
+/node_modules
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+testem.log
+/typings
+
+# e2e
+/e2e/*.js
+/e2e/*.map
+
+# System Files
+.DS_Store
+Thumbs.db
+/.apt_generated/
+/.apt_generated_tests/
