@@ -168,16 +168,16 @@ mvn clean install -Pwar
 
 ```bash
 # Avvio applicazione standalone
-java -jar target/govpay-portal-api-1.0.0.jar
+java -jar target/govpay-portal-api.jar
 
 # Con profilo specifico
-java -jar target/govpay-portal-api-1.0.0.jar --spring.profiles.active=prod
+java -jar target/govpay-portal-api.jar --spring.profiles.active=prod
 
 # Con variabili d'ambiente
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/govpay
 export SPRING_DATASOURCE_USERNAME=govpay
 export SPRING_DATASOURCE_PASSWORD=govpay
-java -jar target/govpay-portal-api-1.0.0.jar
+java -jar target/govpay-portal-api.jar
 ```
 
 ### Deploy WAR
@@ -187,7 +187,7 @@ java -jar target/govpay-portal-api-1.0.0.jar
 mvn clean package -Pwar
 
 # Copia su Tomcat/WildFly
-cp target/govpay-portal-api-1.0.0.war $CATALINA_HOME/webapps/
+cp target/govpay-portal-api.war $CATALINA_HOME/webapps/
 ```
 
 ## Caratteristiche Implementate

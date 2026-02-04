@@ -193,6 +193,7 @@
     </dependencies>
 
     <build>
+        <finalName>govpay-portal-api</finalName>
         <plugins>
             <!-- Spring Boot Maven Plugin -->
             <plugin>
