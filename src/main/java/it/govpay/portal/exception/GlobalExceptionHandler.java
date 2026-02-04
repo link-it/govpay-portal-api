@@ -73,6 +73,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errore);
     }
 
+    @ExceptionHandler(BadGatewayException.class)
+    public ResponseEntity<Errore> handleBadGatewayException(BadGatewayException ex) {
+        Errore errore = new Errore();
+        errore.setCategoria("BACKEND");
+        errore.setCodice("502");
+        errore.setDescrizione("Errore dal servizio GovPay");
+        errore.setDettaglio(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errore);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Errore> handleGenericException(Exception ex) {
         Errore errore = new Errore();

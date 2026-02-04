@@ -148,4 +148,20 @@ class ExceptionsTest {
         assertEquals("Errore trasformazione", ex.getMessage());
         assertEquals(cause, ex.getCause());
     }
+
+    @Test
+    @DisplayName("BadGatewayException con messaggio")
+    void testBadGatewayException() {
+        BadGatewayException ex = new BadGatewayException("Errore dal backend");
+        assertEquals("Errore dal backend", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("BadGatewayException con messaggio e causa")
+    void testBadGatewayExceptionWithCause() {
+        Exception cause = new RuntimeException("causa");
+        BadGatewayException ex = new BadGatewayException("Errore dal backend", cause);
+        assertEquals("Errore dal backend", ex.getMessage());
+        assertEquals(cause, ex.getCause());
+    }
 }

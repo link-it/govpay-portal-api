@@ -26,6 +26,7 @@ import it.govpay.portal.beans.pendenza.PendenzaPost;
 import it.govpay.portal.beans.pendenza.PendenzaPostValidator;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamentoDominio;
+import it.govpay.portal.exception.BadGatewayException;
 import it.govpay.portal.exception.BadRequestException;
 import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.exception.UnprocessableEntityException;
@@ -285,18 +286,19 @@ public class CreaPendenzaService {
 
             return result;
 
-        } catch (HttpClientErrorException.BadRequest e) {
-            log.error("Errore BadRequest da GovPay: {}", e.getResponseBodyAsString());
-            throw new BadRequestException("Errore nella creazione della pendenza: " + e.getMessage());
-
-        } catch (HttpClientErrorException.UnprocessableEntity e) {
-            log.error("Errore UnprocessableEntity da GovPay: {}", e.getResponseBodyAsString());
-            throw new UnprocessableEntityException(
-                    "Dati pendenza non validi: " + e.getResponseBodyAsString());
+        } catch (HttpClientErrorException e) {
+            // Log dettagliato dell'errore da GovPay
+            log.error("Errore HTTP {} da GovPay per pendenza idA2A={}, idPendenza={}: {}",
+                    e.getStatusCode(), idA2A, idPendenza, e.getResponseBodyAsString(), e);
+            throw new BadGatewayException(
+                    "Errore dal servizio GovPay: " + e.getResponseBodyAsString(), e);
 
         } catch (RestClientException e) {
-            log.error("Errore nella chiamata API GovPay: {}", e.getMessage(), e);
-            throw new RuntimeException("Errore nella comunicazione con GovPay: " + e.getMessage(), e);
+            // Log dettagliato dell'errore di comunicazione
+            log.error("Errore di comunicazione con GovPay per pendenza idA2A={}, idPendenza={}: {}",
+                    idA2A, idPendenza, e.getMessage(), e);
+            throw new BadGatewayException(
+                    "Errore di comunicazione con il servizio GovPay: " + e.getMessage(), e);
         }
     }
 }
