@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.9</version>
+        <groupId>org.gov4j.govpay</groupId>
+        <artifactId>govpay-bom</artifactId>
+        <version>1.1.1-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
@@ -20,31 +20,36 @@
     <description>API per il portale di pagamento GovPay</description>
 
     <properties>
-        <java.version>21</java.version>
-        <openapi-generator.version>7.10.0</openapi-generator.version>
-        <springdoc.version>2.8.15</springdoc.version>
-        <jackson-databind-nullable.version>0.2.6</jackson-databind-nullable.version>
-        <!-- mime-util -->
+        <!-- Version overrides -->
+        <openapi.tool.codegen.version>7.10.0</openapi.tool.codegen.version>
+        <springdoc-openapi.version>2.8.15</springdoc-openapi.version>
+        <swagger-annotations.version>2.2.25</swagger-annotations.version>
+
+        <!-- mime-util (not in BOM) -->
         <mime-util.version>2.1.3</mime-util.version>
-
-        <!-- Version overrides for CVE fixes -->
-        <commons-lang3.version>3.18.0</commons-lang3.version>
-        <log4j2.version>2.25.3</log4j2.version>
-        <logback.version>1.5.25</logback.version>
-
-        <!-- JaCoCo -->
-        <jacoco.version>0.8.13</jacoco.version>
 
         <!-- OWASP config -->
         <owasp.falsePositives.dir>src/main/resources/owasp/falsePositives</owasp.falsePositives.dir>
         <owasp>verify</owasp>
-        <owasp.plugin.version>12.1.3</owasp.plugin.version>
         <owasp.plugin.autoUpdate>true</owasp.plugin.autoUpdate>
         <owasp.plugin.failBuildOnCVSS>11</owasp.plugin.failBuildOnCVSS>
 
         <!-- SonarCloud -->
         <sonar.coverage.exclusions>**/test/**,**/*Test*.java</sonar.coverage.exclusions>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>central-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <profiles>
         <profile>
@@ -118,7 +123,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
 			<groupId>eu.medsea.mimeutil</groupId>
 			<artifactId>mime-util</artifactId>
@@ -135,21 +140,18 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
         </dependency>
 
         <!-- Jackson Databind Nullable (required by OpenAPI Generator) -->
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
-            <version>${jackson-databind-nullable.version}</version>
         </dependency>
 
         <!-- Swagger Annotations -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.2.25</version>
         </dependency>
 
         <!-- Jakarta Validation -->
@@ -213,7 +215,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi-generator.version}</version>
+                <version>${openapi.tool.codegen.version}</version>
                 <executions>
                     <!-- Generazione API Portal (server) -->
                     <execution>
@@ -334,7 +336,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -356,7 +357,6 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>${owasp.plugin.version}</version>
                 <configuration>
                     <autoUpdate>${owasp.plugin.autoUpdate}</autoUpdate>
                     <failBuildOnCVSS>${owasp.plugin.failBuildOnCVSS}</failBuildOnCVSS>

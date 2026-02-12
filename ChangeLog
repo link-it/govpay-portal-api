@@ -1,3 +1,15 @@
+2025-02-12  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Migrato parent POM da spring-boot-starter-parent a govpay-bom
+	(org.gov4j.govpay:govpay-bom:1.1.1-SNAPSHOT) per gestione centralizzata
+	delle versioni delle dipendenze e dei plugin.
+	Rimossi version override delle dipendenze ora gestite dal BOM.
+	Aggiunto repository central-snapshots per risoluzione parent SNAPSHOT.
+
+	* [CI]
+	Aggiunta eccezione licenza per govpay-common in license-exceptions.json.
+
 2025-02-04  Giuliano Pintori <pintori@link.it>
 
 	* [Bug Fix]
