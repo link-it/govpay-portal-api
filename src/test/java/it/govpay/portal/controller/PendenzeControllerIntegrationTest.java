@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,6 +35,7 @@ import it.govpay.pendenze.client.model.PendenzaCreata;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.TipoVersamento;
 import it.govpay.portal.entity.TipoVersamentoDominio;
+import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
 import it.govpay.portal.security.hardening.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
@@ -41,6 +43,7 @@ import it.govpay.portal.test.TemplateTestUtils;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class PendenzeControllerIntegrationTest {
 
     @Autowired
@@ -57,6 +60,9 @@ class PendenzeControllerIntegrationTest {
 
     @MockBean
     private ConfigurazioneService configurazioneService;
+
+    @MockBean
+    private GdeService gdeService;
 
     private TipoVersamentoDominio tipoVersamentoDominio;
     private Dominio dominio;
