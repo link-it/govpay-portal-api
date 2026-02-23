@@ -1127,9 +1127,6 @@ components:
           properties:
             form:
               $ref: '#/components/schemas/TipoPendenzaForm'
-            visualizzazione:
-              type: object
-              description: Definisce come visualizzare la pendenza
     TipoPendenzaForm:
       type: object
       required:
