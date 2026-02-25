@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.ListaDomini;
 import it.govpay.portal.model.ListaTipiPendenza;
@@ -27,12 +28,19 @@ import it.govpay.portal.model.Soggetto;
 import it.govpay.portal.model.TipoPendenza;
 import it.govpay.portal.model.TipoSoggetto;
 import it.govpay.portal.service.AnagraficaService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 class AnagraficaControllerTest {
 
     @Mock
     private AnagraficaService anagraficaService;
+
+    @Mock
+    private GdeService gdeService;
+
+    @Mock
+    private HttpServletRequest request;
 
     @InjectMocks
     private AnagraficaController anagraficaController;

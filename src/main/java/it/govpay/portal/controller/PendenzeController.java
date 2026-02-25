@@ -1,5 +1,6 @@
 package it.govpay.portal.controller;
 
+import java.time.OffsetDateTime;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.govpay.portal.exception.ForbiddenException;
+import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.model.ListaPendenze;
 import it.govpay.portal.model.Pendenza;
@@ -40,16 +43,19 @@ public class PendenzeController {
     private final StampeService stampeService;
     private final CreaPendenzaService creaPendenzaService;
     private final ConfigurazioneService configurazioneService;
+    private final GdeService gdeService;
 
     public PendenzeController(
             PendenzeService pendenzeService,
             StampeService stampeService,
             CreaPendenzaService creaPendenzaService,
-            ConfigurazioneService configurazioneService) {
+            ConfigurazioneService configurazioneService,
+            GdeService gdeService) {
         this.pendenzeService = pendenzeService;
         this.stampeService = stampeService;
         this.creaPendenzaService = creaPendenzaService;
         this.configurazioneService = configurazioneService;
+        this.gdeService = gdeService;
     }
 
     @PostMapping(value = "/pendenze/{idDominio}/{idTipoPendenza}",
@@ -64,32 +70,43 @@ public class PendenzeController {
             @RequestParam(value = "gRecaptchaResponse", required = false) String gRecaptchaResponse,
             HttpServletRequest request) {
 
-        log.debug("Richiesta creazione pendenza: idDominio={}, idTipoPendenza={}", idDominio, idTipoPendenza);
+        OffsetDateTime startTime = OffsetDateTime.now();
 
-        // Valida reCAPTCHA se abilitato
-        validaReCaptcha(request);
+        try {
+            log.debug("Richiesta creazione pendenza: idDominio={}, idTipoPendenza={}", idDominio, idTipoPendenza);
 
-        // Estrai headers, query params e path params dalla request
-        Map<String, String> headers = extractHeaders(request);
-        Map<String, String> queryParams = extractQueryParams(request);
-        Map<String, String> pathParams = Map.of(
-                "idDominio", idDominio,
-                "idTipoPendenza", idTipoPendenza);
+            // Valida reCAPTCHA se abilitato
+            validaReCaptcha(request);
 
-        // Crea la pendenza
-        Pendenza pendenza = creaPendenzaService.creaPendenza(
-                idDominio,
-                idTipoPendenza,
-                requestBody,
-                idA2A,
-                idPendenza,
-                headers,
-                queryParams,
-                pathParams);
+            // Estrai headers, query params e path params dalla request
+            Map<String, String> headers = extractHeaders(request);
+            Map<String, String> queryParams = extractQueryParams(request);
+            Map<String, String> pathParams = Map.of(
+                    "idDominio", idDominio,
+                    "idTipoPendenza", idTipoPendenza);
 
-        log.info("Pendenza creata con successo: numeroAvviso={}", pendenza.getNumeroAvviso());
+            // Crea la pendenza
+            Pendenza pendenza = creaPendenzaService.creaPendenza(
+                    idDominio,
+                    idTipoPendenza,
+                    requestBody,
+                    idA2A,
+                    idPendenza,
+                    headers,
+                    queryParams,
+                    pathParams);
 
-        return ResponseEntity.ok(pendenza);
+            log.info("Pendenza creata con successo: numeroAvviso={}", pendenza.getNumeroAvviso());
+
+            ResponseEntity<Pendenza> response = ResponseEntity.ok(pendenza);
+            gdeService.saveEventOk(Costanti.OP_CREA_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value(), idDominio);
+            return response;
+        } catch (Exception e) {
+            gdeService.saveEventKo(Costanti.OP_CREA_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+            throw e;
+        }
     }
 
     /**
@@ -155,37 +172,64 @@ public class PendenzeController {
             @RequestParam(value = "idDebitore", required = false) String idDebitore,
             @RequestParam(value = "UUID", required = false) String uuid,
             @RequestParam(value = "linguaSecondaria", required = false) LinguaSecondaria linguaSecondaria,
-            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader) {
+            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
+            HttpServletRequest request) {
 
-        // Determina il content type richiesto
-        MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
+        OffsetDateTime startTime = OffsetDateTime.now();
 
-        if (requestedMediaType == null) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("Accept header richiesto: application/json o application/pdf");
-        }
+        try {
+            // Determina il content type richiesto
+            MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
 
-        if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
-            MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
-            // Genera il PDF tramite il servizio stampe
-            return stampeService.generateAvvisoPdf(idDominio, numeroAvviso, linguaSecondaria)
-                    .map(pdf -> ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_PDF)
-                            .header(HttpHeaders.CONTENT_DISPOSITION,
-                                    "attachment; filename=\"avviso_" + numeroAvviso + ".pdf\"")
-                            .body(pdf))
-                    .orElse(ResponseEntity.notFound().build());
-        } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
-                   MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
-            // Restituisce il JSON dell'avviso
-            return pendenzeService.getAvviso(idDominio, numeroAvviso)
-                    .map(avviso -> ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body((Object) avviso))
-                    .orElse(ResponseEntity.notFound().build());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
+            if (requestedMediaType == null) {
+                ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                        .body("Accept header richiesto: application/json o application/pdf");
+                gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                return response;
+            }
+
+            ResponseEntity<?> response;
+
+            if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
+                MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
+                // Genera il PDF tramite il servizio stampe
+                response = stampeService.generateAvvisoPdf(idDominio, numeroAvviso, linguaSecondaria)
+                        .map(pdf -> ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                        "attachment; filename=\"avviso_" + numeroAvviso + ".pdf\"")
+                                .body(pdf))
+                        .orElse(ResponseEntity.notFound().build());
+            } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
+                       MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
+                // Restituisce il JSON dell'avviso
+                response = pendenzeService.getAvviso(idDominio, numeroAvviso)
+                        .map(avviso -> ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body((Object) avviso))
+                        .orElse(ResponseEntity.notFound().build());
+            } else {
+                response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                        .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
+                gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                return response;
+            }
+
+            int statusCode = response.getStatusCode().value();
+            if (response.getStatusCode().is2xxSuccessful()) {
+                gdeService.saveEventOk(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
+                        request, statusCode, idDominio);
+            } else {
+                gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
+                        request, statusCode, null, idDominio);
+            }
+            return response;
+        } catch (Exception e) {
+            gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+            throw e;
         }
     }
 
@@ -193,19 +237,52 @@ public class PendenzeController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Pendenza> getPendenza(
             @PathVariable("idDominio") String idDominio,
-            @PathVariable("numeroAvviso") String numeroAvviso) {
-        return pendenzeService.getPendenza(idDominio, numeroAvviso)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            @PathVariable("numeroAvviso") String numeroAvviso,
+            HttpServletRequest request) {
+
+        OffsetDateTime startTime = OffsetDateTime.now();
+
+        try {
+            ResponseEntity<Pendenza> response = pendenzeService.getPendenza(idDominio, numeroAvviso)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+
+            int statusCode = response.getStatusCode().value();
+            if (response.getStatusCode().is2xxSuccessful()) {
+                gdeService.saveEventOk(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
+                        request, statusCode, idDominio);
+            } else {
+                gdeService.saveEventKo(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
+                        request, statusCode, null, idDominio);
+            }
+            return response;
+        } catch (Exception e) {
+            gdeService.saveEventKo(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+            throw e;
+        }
     }
 
     @GetMapping(value = "/pendenze/{idDominio}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ListaPendenze> getPendenze(
             @PathVariable("idDominio") String idDominio,
-            @RequestParam(value = "stato", required = false) StatoPendenza stato) {
-        ListaPendenze pendenze = pendenzeService.getPendenze(idDominio, stato);
-        return ResponseEntity.ok(pendenze);
+            @RequestParam(value = "stato", required = false) StatoPendenza stato,
+            HttpServletRequest request) {
+
+        OffsetDateTime startTime = OffsetDateTime.now();
+
+        try {
+            ListaPendenze pendenze = pendenzeService.getPendenze(idDominio, stato);
+            ResponseEntity<ListaPendenze> response = ResponseEntity.ok(pendenze);
+            gdeService.saveEventOk(Costanti.OP_GET_PENDENZE, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value(), idDominio);
+            return response;
+        } catch (Exception e) {
+            gdeService.saveEventKo(Costanti.OP_GET_PENDENZE, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+            throw e;
+        }
     }
 
     @GetMapping(value = "/pendenze/{idDominio}/{numeroAvviso}/ricevuta",
@@ -213,37 +290,64 @@ public class PendenzeController {
     public ResponseEntity<?> getRicevuta(
             @PathVariable("idDominio") String idDominio,
             @PathVariable("numeroAvviso") String numeroAvviso,
-            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader) {
+            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
+            HttpServletRequest request) {
 
-        // Determina il content type richiesto
-        MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
+        OffsetDateTime startTime = OffsetDateTime.now();
 
-        if (requestedMediaType == null) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("Accept header richiesto: application/json o application/pdf");
-        }
+        try {
+            // Determina il content type richiesto
+            MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
 
-        if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
-            MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
-            // Genera il PDF tramite il servizio stampe
-            return stampeService.generateRicevutaPdf(idDominio, numeroAvviso)
-                    .map(pdf -> ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_PDF)
-                            .header(HttpHeaders.CONTENT_DISPOSITION,
-                                    "attachment; filename=\"ricevuta_" + numeroAvviso + ".pdf\"")
-                            .body(pdf))
-                    .orElse(ResponseEntity.notFound().build());
-        } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
-                   MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
-            // Restituisce il JSON della ricevuta
-            return pendenzeService.getRicevuta(idDominio, numeroAvviso)
-                    .map(ricevuta -> ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body((Object) ricevuta))
-                    .orElse(ResponseEntity.notFound().build());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
+            if (requestedMediaType == null) {
+                ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                        .body("Accept header richiesto: application/json o application/pdf");
+                gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                return response;
+            }
+
+            ResponseEntity<?> response;
+
+            if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
+                MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
+                // Genera il PDF tramite il servizio stampe
+                response = stampeService.generateRicevutaPdf(idDominio, numeroAvviso)
+                        .map(pdf -> ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                        "attachment; filename=\"ricevuta_" + numeroAvviso + ".pdf\"")
+                                .body(pdf))
+                        .orElse(ResponseEntity.notFound().build());
+            } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
+                       MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
+                // Restituisce il JSON della ricevuta
+                response = pendenzeService.getRicevuta(idDominio, numeroAvviso)
+                        .map(ricevuta -> ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body((Object) ricevuta))
+                        .orElse(ResponseEntity.notFound().build());
+            } else {
+                response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                        .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
+                gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                return response;
+            }
+
+            int statusCode = response.getStatusCode().value();
+            if (response.getStatusCode().is2xxSuccessful()) {
+                gdeService.saveEventOk(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
+                        request, statusCode, idDominio);
+            } else {
+                gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
+                        request, statusCode, null, idDominio);
+            }
+            return response;
+        } catch (Exception e) {
+            gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+            throw e;
         }
     }
 

@@ -3,6 +3,7 @@ package it.govpay.portal.config;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,9 @@ public class GovPayClientConfig {
     private String username;
     private String password;
 
+    @Value("${portal.time-zone:Europe/Rome}")
+    private String timezone;
+
     @Bean
     public PendenzeApi pendenzeApi() {
         // Crea un RestTemplate con ObjectMapper configurato per le date
@@ -48,7 +52,7 @@ public class GovPayClientConfig {
 
         // Configura l'ObjectMapper
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
+        objectMapper.setTimeZone(TimeZone.getTimeZone(timezone));
         objectMapper.setDateFormat(new SimpleDateFormat(JacksonConfig.PATTERN_DATE_YYYY_MM_DD));
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);

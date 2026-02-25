@@ -51,6 +51,38 @@ public class AnagraficaMapper {
         return dominio;
     }
 
+    public TipoPendenza toTipoPendenzaIndex(TipoVersamentoDominio entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        String codTipoVersamento = entity.getTipoVersamento() != null
+                ? entity.getTipoVersamento().getCodTipoVersamento()
+                : null;
+
+        String descrizione = entity.getTipoVersamento() != null
+                ? entity.getTipoVersamento().getDescrizione()
+                : null;
+
+        TipoPendenza tipoPendenza = new TipoPendenza(codTipoVersamento, descrizione);
+
+        if (entity.getPagFormTipo() != null && entity.getPagFormDefinizione() != null) {
+            TipoPendenzaForm form = new TipoPendenzaForm();
+            form.setTipo(entity.getPagFormTipo());
+            tipoPendenza.setForm(form);
+        } else if (entity.getTipoVersamento() != null) {
+            String formTipo = entity.getTipoVersamento().getPagFormTipo();
+            String formDef = entity.getTipoVersamento().getPagFormDefinizione();
+            if (formTipo != null && formDef != null) {
+                TipoPendenzaForm form = new TipoPendenzaForm();
+                form.setTipo(formTipo);
+                tipoPendenza.setForm(form);
+            }
+        }
+
+        return tipoPendenza;
+    }
+    
     public TipoPendenza toTipoPendenza(TipoVersamentoDominio entity) {
         if (entity == null) {
             return null;

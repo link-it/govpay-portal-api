@@ -2,7 +2,6 @@ package it.govpay.portal.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,15 +67,13 @@ public class AnagraficaService {
     public void logout() {
         // Verifica che l'utente sia autenticato prima di procedere con il logout
         getAuthenticatedUser();
-        // TODO: integrare con Spring Security per gestire il logout
     }
 
     public ListaDomini getDomini() {
         List<it.govpay.portal.entity.Dominio> entities = dominioRepository.findAll();
 
         List<Dominio> domini = entities.stream()
-                .map(anagraficaMapper::toDominio)
-                .collect(Collectors.toList());
+                .map(anagraficaMapper::toDominio).toList();
 
         ListaDomini result = new ListaDomini();
         result.setRisultati(domini);
@@ -100,8 +97,7 @@ public class AnagraficaService {
                 .findByDominioIdAndAbilitatoAndPagAbilitato(dominio.get().getId(), true, true);
 
         List<TipoPendenza> tipiPendenza = entities.stream()
-                .map(anagraficaMapper::toTipoPendenza)
-                .collect(Collectors.toList());
+                .map(anagraficaMapper::toTipoPendenzaIndex).toList();
 
         ListaTipiPendenza result = new ListaTipiPendenza();
         result.setRisultati(tipiPendenza);

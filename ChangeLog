@@ -1,3 +1,39 @@
+2026-02-26  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Aggiornato parent POM govpay-bom alla versione 1.1.2.
+	Aggiornata dipendenza govpay-common alla versione 1.0.0.
+	Estratta versione di govpay-common in property dedicata.
+
+	* [GDE]
+	Integrato Giornale degli Eventi (GDE) tramite ConnettoreService di
+	govpay-common. Aggiunto tracciamento chiamate API nei controller
+	Anagrafica e Pendenze. Creati EventoPortalMapper, GdeService e Costanti.
+
+	* [Configurazione]
+	Rimosso timezone hardcoded in GovPayClientConfig, ora configurabile
+	tramite property portal.time-zone.
+
+	* [API]
+	Eliminati campi non necessari dalla risposta lista tipi pendenze.
+	Aggiunto metodo toTipoPendenzaIndex nel mapper AnagraficaMapper.
+
+	* [Test]
+	Corretto mock nel test AnagraficaServiceTest.shouldReturnListOfTipiPendenza
+	per allineamento con metodo toTipoPendenzaIndex.
+
+2025-02-12  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Migrato parent POM da spring-boot-starter-parent a govpay-bom
+	(org.gov4j.govpay:govpay-bom:1.1.1-SNAPSHOT) per gestione centralizzata
+	delle versioni delle dipendenze e dei plugin.
+	Rimossi version override delle dipendenze ora gestite dal BOM.
+	Aggiunto repository central-snapshots per risoluzione parent SNAPSHOT.
+
+	* [CI]
+	Aggiunta eccezione licenza per govpay-common in license-exceptions.json.
+
 2025-02-04  Giuliano Pintori <pintori@link.it>
 
 	* [Bug Fix]

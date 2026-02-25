@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.model.Avviso;
 import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.model.ListaPendenze;
@@ -29,6 +30,7 @@ import it.govpay.portal.model.Ricevuta;
 import it.govpay.portal.model.StatoPendenza;
 import it.govpay.portal.service.PendenzeService;
 import it.govpay.portal.service.StampeService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 class PendenzeControllerTest {
@@ -38,6 +40,12 @@ class PendenzeControllerTest {
 
     @Mock
     private StampeService stampeService;
+
+    @Mock
+    private GdeService gdeService;
+
+    @Mock
+    private HttpServletRequest request;
 
     @InjectMocks
     private PendenzeController pendenzeController;
@@ -60,7 +68,7 @@ class PendenzeControllerTest {
 
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, null,
-                    MediaType.APPLICATION_JSON_VALUE);
+                    MediaType.APPLICATION_JSON_VALUE, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
@@ -81,7 +89,7 @@ class PendenzeControllerTest {
 
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, null,
-                    MediaType.APPLICATION_PDF_VALUE);
+                    MediaType.APPLICATION_PDF_VALUE, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(MediaType.APPLICATION_PDF, response.getHeaders().getContentType());
@@ -103,7 +111,7 @@ class PendenzeControllerTest {
 
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, LinguaSecondaria.EN,
-                    MediaType.APPLICATION_PDF_VALUE);
+                    MediaType.APPLICATION_PDF_VALUE, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             verify(stampeService).generateAvvisoPdf(ID_DOMINIO, NUMERO_AVVISO, LinguaSecondaria.EN);
@@ -116,7 +124,7 @@ class PendenzeControllerTest {
 
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, null,
-                    MediaType.APPLICATION_JSON_VALUE);
+                    MediaType.APPLICATION_JSON_VALUE, request);
 
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
@@ -129,7 +137,7 @@ class PendenzeControllerTest {
 
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, null,
-                    MediaType.APPLICATION_PDF_VALUE);
+                    MediaType.APPLICATION_PDF_VALUE, request);
 
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
@@ -138,7 +146,7 @@ class PendenzeControllerTest {
         @DisplayName("Dovrebbe restituire 406 quando Accept header mancante")
         void shouldReturn406WhenAcceptHeaderMissing() {
             ResponseEntity<?> response = pendenzeController.getAvviso(
-                    ID_DOMINIO, NUMERO_AVVISO, null, null, null, null, null);
+                    ID_DOMINIO, NUMERO_AVVISO, null, null, null, null, null, request);
 
             assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         }
@@ -148,7 +156,7 @@ class PendenzeControllerTest {
         void shouldReturn406WhenAcceptHeaderNotSupported() {
             ResponseEntity<?> response = pendenzeController.getAvviso(
                     ID_DOMINIO, NUMERO_AVVISO, null, null, null, null,
-                    MediaType.APPLICATION_XML_VALUE);
+                    MediaType.APPLICATION_XML_VALUE, request);
 
             assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         }
@@ -167,7 +175,7 @@ class PendenzeControllerTest {
 
             when(pendenzeService.getPendenza(ID_DOMINIO, NUMERO_AVVISO)).thenReturn(Optional.of(pendenza));
 
-            ResponseEntity<Pendenza> response = pendenzeController.getPendenza(ID_DOMINIO, NUMERO_AVVISO);
+            ResponseEntity<Pendenza> response = pendenzeController.getPendenza(ID_DOMINIO, NUMERO_AVVISO, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -179,7 +187,7 @@ class PendenzeControllerTest {
         void shouldReturn404WhenPendenzaNotFound() {
             when(pendenzeService.getPendenza(ID_DOMINIO, NUMERO_AVVISO)).thenReturn(Optional.empty());
 
-            ResponseEntity<Pendenza> response = pendenzeController.getPendenza(ID_DOMINIO, NUMERO_AVVISO);
+            ResponseEntity<Pendenza> response = pendenzeController.getPendenza(ID_DOMINIO, NUMERO_AVVISO, request);
 
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
@@ -201,7 +209,7 @@ class PendenzeControllerTest {
 
             when(pendenzeService.getPendenze(ID_DOMINIO, null)).thenReturn(lista);
 
-            ResponseEntity<ListaPendenze> response = pendenzeController.getPendenze(ID_DOMINIO, null);
+            ResponseEntity<ListaPendenze> response = pendenzeController.getPendenze(ID_DOMINIO, null, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -216,7 +224,7 @@ class PendenzeControllerTest {
 
             when(pendenzeService.getPendenze(ID_DOMINIO, StatoPendenza.ESEGUITA)).thenReturn(lista);
 
-            ResponseEntity<ListaPendenze> response = pendenzeController.getPendenze(ID_DOMINIO, StatoPendenza.ESEGUITA);
+            ResponseEntity<ListaPendenze> response = pendenzeController.getPendenze(ID_DOMINIO, StatoPendenza.ESEGUITA, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             verify(pendenzeService).getPendenze(ID_DOMINIO, StatoPendenza.ESEGUITA);
@@ -237,7 +245,7 @@ class PendenzeControllerTest {
             when(pendenzeService.getRicevuta(ID_DOMINIO, NUMERO_AVVISO)).thenReturn(Optional.of(ricevuta));
 
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_JSON_VALUE);
+                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_JSON_VALUE, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
@@ -257,7 +265,7 @@ class PendenzeControllerTest {
                     .thenReturn(Optional.of(pdfContent));
 
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_PDF_VALUE);
+                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_PDF_VALUE, request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(MediaType.APPLICATION_PDF, response.getHeaders().getContentType());
@@ -275,7 +283,7 @@ class PendenzeControllerTest {
             when(pendenzeService.getRicevuta(ID_DOMINIO, NUMERO_AVVISO)).thenReturn(Optional.empty());
 
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_JSON_VALUE);
+                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_JSON_VALUE, request);
 
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
@@ -287,7 +295,7 @@ class PendenzeControllerTest {
                     .thenReturn(Optional.empty());
 
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_PDF_VALUE);
+                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_PDF_VALUE, request);
 
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
@@ -296,7 +304,7 @@ class PendenzeControllerTest {
         @DisplayName("Dovrebbe restituire 406 quando Accept header mancante")
         void shouldReturn406WhenAcceptHeaderMissing() {
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, null);
+                    ID_DOMINIO, NUMERO_AVVISO, null, request);
 
             assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         }
@@ -305,7 +313,7 @@ class PendenzeControllerTest {
         @DisplayName("Dovrebbe restituire 406 quando Accept header non supportato")
         void shouldReturn406WhenAcceptHeaderNotSupported() {
             ResponseEntity<?> response = pendenzeController.getRicevuta(
-                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_XML_VALUE);
+                    ID_DOMINIO, NUMERO_AVVISO, MediaType.APPLICATION_XML_VALUE, request);
 
             assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         }
