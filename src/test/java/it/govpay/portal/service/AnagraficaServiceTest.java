@@ -223,7 +223,7 @@ class AnagraficaServiceTest {
                     .thenReturn(Optional.of(dominioEntity));
             when(tipoVersamentoDominioRepository.findByDominioIdAndAbilitatoAndPagAbilitato(1L, true, true))
                     .thenReturn(List.of(tvd));
-            when(anagraficaMapper.toTipoPendenza(tvd)).thenReturn(tipoPendenzaModel);
+            when(anagraficaMapper.toTipoPendenzaIndex(tvd)).thenReturn(tipoPendenzaModel);
 
             ListaTipiPendenza result = anagraficaService.getTipiPendenza("12345678901");
 
