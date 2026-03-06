@@ -187,7 +187,9 @@ if [ -z "${JAR_FILE}" ]; then
     exit 1
 fi
 
+log_info "JDBC Drivers: ${GOVPAY_DS_JDBC_LIBS}"
 log_info "Avvio: ${JAR_FILE}"
 log_info "========================================"
 
+export LOADER_PATH="${GOVPAY_DS_JDBC_LIBS}"
 exec java ${JAVA_OPTS} -jar "${JAR_FILE}"

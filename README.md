@@ -148,7 +148,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 
 - Java 21
 - Maven 3.6.3+
-- Database PostgreSQL 9.6+ (o H2 per sviluppo)
+- Database PostgreSQL 9.6+ (o H2 per sviluppo), MySQL, Oracle, SQL Server
+- Driver JDBC del database scelto (non incluso nel fat jar)
 - GovPay backend operativo
 
 ### Compilazione
@@ -166,19 +167,25 @@ mvn clean install -Pwar
 
 ### Esecuzione
 
+I driver JDBC non sono inclusi nel fat jar e devono essere forniti esternamente
+tramite la proprietà `loader.path` del `PropertiesLauncher` di Spring Boot.
+
 ```bash
-# Avvio applicazione standalone
-java -jar target/govpay-portal-api.jar
+# Avvio applicazione standalone (con driver JDBC esterno)
+java -Dloader.path=./jdbc-drivers -jar target/govpay-portal-api.jar
 
 # Con profilo specifico
-java -jar target/govpay-portal-api.jar --spring.profiles.active=prod
+java -Dloader.path=./jdbc-drivers -jar target/govpay-portal-api.jar --spring.profiles.active=prod
 
 # Con variabili d'ambiente
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/govpay
 export SPRING_DATASOURCE_USERNAME=govpay
 export SPRING_DATASOURCE_PASSWORD=govpay
-java -jar target/govpay-portal-api.jar
+java -Dloader.path=./jdbc-drivers -jar target/govpay-portal-api.jar
 ```
+
+Per i dettagli sui driver supportati e le istruzioni di download, vedere
+[docker/jdbc-drivers/README.md](docker/jdbc-drivers/README.md).
 
 ### Deploy WAR
 

@@ -1,3 +1,18 @@
+2026-03-06  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.1.
+	Rimossi driver JDBC dal fat jar. I driver (PostgreSQL, MySQL, Oracle,
+	SQL Server, H2) sono ora dichiarati con scope provided e esclusi
+	esplicitamente dal spring-boot-maven-plugin. Il jar utilizza il layout
+	ZIP (PropertiesLauncher) per supportare il caricamento esterno tramite
+	loader.path.
+
+	* [Docker]
+	Aggiornato entrypoint per impostare LOADER_PATH=/opt/jdbc-drivers.
+	Creata directory docker/jdbc-drivers con documentazione per il download
+	dei driver supportati.
+
 2026-02-26  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
