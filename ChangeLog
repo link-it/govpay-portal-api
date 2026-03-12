@@ -1,3 +1,17 @@
+2026-03-12  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.2.
+	Corretta configurazione spring-boot-maven-plugin: il layout ZIP
+	(PropertiesLauncher) e gli exclude dei driver JDBC sono ora applicati
+	solo al profilo jar, evitando il wrapping BOOT-INF nel WAR che
+	impediva il deploy su servlet container esterni.
+
+	* [WAR]
+	Aggiunto supporto deploy WAR su servlet container esterni (Tomcat,
+	WildFly). La classe GovPayPortalApplication ora estende
+	SpringBootServletInitializer con override del metodo configure().
+
 2026-03-06  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
