@@ -1,3 +1,16 @@
+2026-03-14  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.3.
+
+	* [Bug Fix]
+	Corretta condizione di filtro per la lista tipi pendenza. Il filtro
+	su pag_abilitato e' stato sostituito con la verifica della presenza
+	del form di pagamento portale: un tipo pendenza viene restituito se
+	ha un form ridefinito a livello dominio (pag_form_definizione e
+	pag_form_tipo non null) oppure se eredita il form default dal tipo
+	versamento.
+
 2026-03-12  Giuliano Pintori <pintori@link.it>
 
 	* [Build]

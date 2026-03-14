@@ -94,7 +94,7 @@ public class AnagraficaService {
         }
 
         List<TipoVersamentoDominio> entities = tipoVersamentoDominioRepository
-                .findByDominioIdAndAbilitatoAndPagAbilitato(dominio.get().getId(), true, true);
+                .findByDominioIdAndAbilitatoWithFormPortale(dominio.get().getId(), true);
 
         List<TipoPendenza> tipiPendenza = entities.stream()
                 .map(anagraficaMapper::toTipoPendenzaIndex).toList();

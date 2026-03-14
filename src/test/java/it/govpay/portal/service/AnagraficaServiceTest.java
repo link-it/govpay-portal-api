@@ -214,14 +214,15 @@ class AnagraficaServiceTest {
                     .dominio(dominioEntity)
                     .tipoVersamento(tipoVersamento)
                     .abilitato(true)
-                    .pagAbilitato(true)
+                    .pagFormDefinizione("formDef")
+                    .pagFormTipo("formTipo")
                     .build();
 
             TipoPendenza tipoPendenzaModel = new TipoPendenza("TARI", "Tassa Rifiuti");
 
             when(dominioRepository.findByCodDominio("12345678901"))
                     .thenReturn(Optional.of(dominioEntity));
-            when(tipoVersamentoDominioRepository.findByDominioIdAndAbilitatoAndPagAbilitato(1L, true, true))
+            when(tipoVersamentoDominioRepository.findByDominioIdAndAbilitatoWithFormPortale(1L, true))
                     .thenReturn(List.of(tvd));
             when(anagraficaMapper.toTipoPendenzaIndex(tvd)).thenReturn(tipoPendenzaModel);
 
@@ -245,7 +246,7 @@ class AnagraficaServiceTest {
             // Il servizio restituisce un nuovo ListaTipiPendenza senza settare risultati
             // quindi risultati e' null o una lista vuota a seconda dell'inizializzazione del model
 
-            verify(tipoVersamentoDominioRepository, never()).findByDominioIdAndAbilitatoAndPagAbilitato(anyLong(), anyBoolean(), anyBoolean());
+            verify(tipoVersamentoDominioRepository, never()).findByDominioIdAndAbilitatoWithFormPortale(anyLong(), anyBoolean());
         }
     }
 
