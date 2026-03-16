@@ -97,7 +97,7 @@ public class AnagraficaService {
                 .findByDominioIdAndAbilitatoWithFormPortale(dominio.get().getId(), true);
 
         List<TipoPendenza> tipiPendenza = entities.stream()
-                .map(anagraficaMapper::toTipoPendenzaIndex).toList();
+                .map(anagraficaMapper::toTipoPendenza).toList();
 
         ListaTipiPendenza result = new ListaTipiPendenza();
         result.setRisultati(tipiPendenza);

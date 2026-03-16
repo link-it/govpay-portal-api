@@ -224,7 +224,7 @@ class AnagraficaServiceTest {
                     .thenReturn(Optional.of(dominioEntity));
             when(tipoVersamentoDominioRepository.findByDominioIdAndAbilitatoWithFormPortale(1L, true))
                     .thenReturn(List.of(tvd));
-            when(anagraficaMapper.toTipoPendenzaIndex(tvd)).thenReturn(tipoPendenzaModel);
+            when(anagraficaMapper.toTipoPendenza(tvd)).thenReturn(tipoPendenzaModel);
 
             ListaTipiPendenza result = anagraficaService.getTipiPendenza("12345678901");
 
