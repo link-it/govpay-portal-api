@@ -1,3 +1,13 @@
+2026-03-16  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.4.
+
+	* [API]
+	La lista tipi pendenza ora restituisce i dati completi del tipo
+	pendenza (toTipoPendenza) invece della versione ridotta
+	(toTipoPendenzaIndex).
+
 2026-03-14  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
