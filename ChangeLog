@@ -1,3 +1,24 @@
+2026-03-17  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.5.
+
+	* [Configurazione]
+	Integrata lettura configurazione hardening tramite ConfigurazioneService
+	di govpay-common. Rimossi modelli locali Hardening, GoogleCaptcha,
+	entity Configurazione e ConfigurazioneRepository duplicati. Il
+	ConfigurazioneService del portal ora delega a quello di govpay-common
+	per la lettura da database.
+
+	* [Sicurezza]
+	Aggiunto CsrfCookieFilter per forzare l'invio del cookie XSRF-TOKEN
+	su ogni risposta (fix per Spring Security 6 deferred tokens).
+	Aggiunto exceptionHandling con risposte JSON per errori 401/403
+	generati da Spring Security, evitando le pagine HTML di errore di
+	Tomcat in deploy WAR.
+	Corretta verifica utente anonimo in HardeningRequestMatcher: aggiunto
+	check per principal "UTENTE_ANONIMO" oltre a "anonymousUser".
+
 2026-03-16  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
