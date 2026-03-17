@@ -37,7 +37,7 @@ import it.govpay.portal.entity.TipoVersamento;
 import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
-import it.govpay.portal.security.hardening.model.Hardening;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import it.govpay.portal.test.TemplateTestUtils;
 
@@ -100,7 +100,13 @@ class PendenzeControllerIntegrationTest {
 
         // Disabilita reCAPTCHA per i test
         when(configurazioneService.getHardening())
-                .thenReturn(Hardening.builder().abilitato(false).build());
+                .thenReturn(createDisabledHardening());
+    }
+
+    private Hardening createDisabledHardening() {
+        Hardening hardening = new Hardening();
+        hardening.setAbilitato(false);
+        return hardening;
     }
 
     /**

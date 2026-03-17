@@ -10,7 +10,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import it.govpay.portal.security.hardening.ReCaptchaValidator;
 import it.govpay.portal.security.hardening.exception.ReCaptchaConfigurationException;
-import it.govpay.portal.security.hardening.model.Hardening;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -57,7 +57,8 @@ public class HardeningRequestMatcher implements RequestMatcher {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null
                 && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal());
+                && !"anonymousUser".equals(authentication.getPrincipal())
+                && !"UTENTE_ANONIMO".equals(authentication.getPrincipal());
     }
 
     protected boolean applyHardening(HttpServletRequest request) {

@@ -3,6 +3,8 @@ package it.govpay.portal.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,8 +13,19 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import it.govpay.portal.repository.VersamentoRepository;
 import it.govpay.portal.security.hardening.matcher.AvvisiRequestMatcher;
@@ -150,9 +163,52 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
             )
-            .anonymous(anonymous -> anonymous.principal("UTENTE_ANONIMO"));
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+                            "categoria", "AUTORIZZAZIONE",
+                            "codice", "403",
+                            "descrizione", "Accesso negato",
+                            "dettaglio", "Autenticazione richiesta"
+                    ));
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+                            "categoria", "AUTORIZZAZIONE",
+                            "codice", "403",
+                            "descrizione", "Accesso negato",
+                            "dettaglio", accessDeniedException.getMessage()
+                    ));
+                })
+            )
+            .anonymous(anonymous -> anonymous.principal("UTENTE_ANONIMO"))
+            // Filtro per forzare il caricamento del CSRF token su ogni risposta.
+            // Spring Security 6 usa token deferred: senza questo filtro il cookie
+            // XSRF-TOKEN non viene inviato finche' il token non e' esplicitamente acceduto.
+            .addFilterAfter(new CsrfCookieFilter(), org.springframework.security.web.csrf.CsrfFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Filtro che forza la materializzazione del CSRF token, garantendo che il cookie
+     * XSRF-TOKEN venga sempre inviato al client (necessario per SPA).
+     */
+    static class CsrfCookieFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                FilterChain filterChain) throws ServletException, IOException {
+            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+            if (csrfToken != null) {
+                // Forza la generazione del token (e quindi del cookie)
+                csrfToken.getToken();
+            }
+            filterChain.doFilter(request, response);
+        }
     }
 
 }

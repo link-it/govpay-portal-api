@@ -22,9 +22,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import it.govpay.common.configurazione.model.GoogleCaptcha;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.config.SpidUserDetails;
-import it.govpay.portal.security.hardening.model.GoogleCaptcha;
-import it.govpay.portal.security.hardening.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,8 +82,9 @@ class HardeningRequestMatcherTest {
         @DisplayName("Dovrebbe matchare path e metodo corretti con utente anonimo e hardening disabilitato")
         void shouldMatchCorrectPathAndMethod() {
             setAnonymousAuthentication();
-            when(configurazioneService.getHardening())
-                    .thenReturn(Hardening.builder().abilitato(false).build());
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(false);
+            when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
 
@@ -120,8 +121,9 @@ class HardeningRequestMatcherTest {
         @DisplayName("Utente anonimo con hardening disabilitato dovrebbe essere consentito")
         void anonymousUserWithHardeningDisabledShouldBeAllowed() {
             setAnonymousAuthentication();
-            when(configurazioneService.getHardening())
-                    .thenReturn(Hardening.builder().abilitato(false).build());
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(false);
+            when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
 
@@ -139,10 +141,9 @@ class HardeningRequestMatcherTest {
         @DisplayName("Utente anonimo con hardening abilitato ma senza ReCaptcha dovrebbe essere negato")
         void anonymousUserWithHardeningEnabledWithoutReCaptchaShouldBeDenied() {
             setAnonymousAuthentication();
-            Hardening hardening = Hardening.builder()
-                    .abilitato(true)
-                    .googleCaptcha(createValidGoogleCaptcha())
-                    .build();
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            hardening.setGoogleCatpcha(createValidGoogleCaptcha());
             when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
@@ -156,10 +157,9 @@ class HardeningRequestMatcherTest {
         @DisplayName("Utente anonimo con hardening abilitato e ReCaptcha presente ma non validabile dovrebbe essere negato")
         void anonymousUserWithInvalidReCaptchaShouldBeDenied() {
             setAnonymousAuthentication();
-            Hardening hardening = Hardening.builder()
-                    .abilitato(true)
-                    .googleCaptcha(createValidGoogleCaptcha())
-                    .build();
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            hardening.setGoogleCatpcha(createValidGoogleCaptcha());
             when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
@@ -193,10 +193,9 @@ class HardeningRequestMatcherTest {
         @DisplayName("Hardening con GoogleCaptcha null dovrebbe negare accesso")
         void hardeningWithNullGoogleCaptchaShouldDenyAccess() {
             setAnonymousAuthentication();
-            Hardening hardening = Hardening.builder()
-                    .abilitato(true)
-                    .googleCaptcha(null)
-                    .build();
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            hardening.setGoogleCatpcha(null);
             when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
@@ -210,18 +209,17 @@ class HardeningRequestMatcherTest {
         @DisplayName("Hardening con configurazione GoogleCaptcha incompleta dovrebbe negare accesso")
         void hardeningWithIncompleteGoogleCaptchaShouldDenyAccess() {
             setAnonymousAuthentication();
-            GoogleCaptcha incompleteConfig = GoogleCaptcha.builder()
-                    .serverURL("https://www.google.com/recaptcha/api/siteverify")
-                    // Missing secretKey
-                    .responseParameter("g-recaptcha-response")
-                    .connectionTimeout(5000)
-                    .readTimeout(5000)
-                    .soglia(0.5)
-                    .build();
-            Hardening hardening = Hardening.builder()
-                    .abilitato(true)
-                    .googleCaptcha(incompleteConfig)
-                    .build();
+            GoogleCaptcha incompleteConfig = new GoogleCaptcha();
+            incompleteConfig.setServerURL("https://www.google.com/recaptcha/api/siteverify");
+            // Missing secretKey
+            incompleteConfig.setResponseParameter("g-recaptcha-response");
+            incompleteConfig.setConnectionTimeout(5000);
+            incompleteConfig.setReadTimeout(5000);
+            incompleteConfig.setSoglia(0.5);
+
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            hardening.setGoogleCatpcha(incompleteConfig);
             when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createRequest("POST", "/pendenze/12345678901/TARI");
@@ -268,15 +266,15 @@ class HardeningRequestMatcherTest {
     }
 
     private GoogleCaptcha createValidGoogleCaptcha() {
-        return GoogleCaptcha.builder()
-                .serverURL("https://www.google.com/recaptcha/api/siteverify")
-                .secretKey("test-secret-key")
-                .siteKey("test-site-key")
-                .responseParameter("g-recaptcha-response")
-                .connectionTimeout(5000)
-                .readTimeout(5000)
-                .soglia(0.5)
-                .denyOnFail(true)
-                .build();
+        GoogleCaptcha captcha = new GoogleCaptcha();
+        captcha.setServerURL("https://www.google.com/recaptcha/api/siteverify");
+        captcha.setSecretKey("test-secret-key");
+        captcha.setSiteKey("test-site-key");
+        captcha.setResponseParameter("g-recaptcha-response");
+        captcha.setConnectionTimeout(5000);
+        captcha.setReadTimeout(5000);
+        captcha.setSoglia(0.5);
+        captcha.setDenyOnFail(true);
+        return captcha;
     }
 }

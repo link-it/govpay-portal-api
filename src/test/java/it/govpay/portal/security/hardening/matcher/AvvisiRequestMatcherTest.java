@@ -23,11 +23,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import it.govpay.common.configurazione.model.GoogleCaptcha;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.repository.VersamentoRepository;
-import it.govpay.portal.security.hardening.model.GoogleCaptcha;
-import it.govpay.portal.security.hardening.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,8 +121,9 @@ class AvvisiRequestMatcherTest {
         @DisplayName("Utente anonimo con hardening disabilitato dovrebbe essere consentito")
         void anonymousUserWithHardeningDisabledShouldBeAllowed() {
             setAnonymousAuthentication();
-            when(configurazioneService.getHardening())
-                    .thenReturn(Hardening.builder().abilitato(false).build());
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(false);
+            when(configurazioneService.getHardening()).thenReturn(hardening);
 
             MockHttpServletRequest request = createAvvisoRequest(ID_DOMINIO, NUMERO_AVVISO);
 
@@ -320,19 +321,19 @@ class AvvisiRequestMatcherTest {
     }
 
     private Hardening createEnabledHardening() {
-        GoogleCaptcha googleCaptcha = GoogleCaptcha.builder()
-                .serverURL("https://www.google.com/recaptcha/api/siteverify")
-                .secretKey("test-secret-key")
-                .siteKey("test-site-key")
-                .responseParameter("g-recaptcha-response")
-                .connectionTimeout(5000)
-                .readTimeout(5000)
-                .soglia(0.5)
-                .denyOnFail(true)
-                .build();
-        return Hardening.builder()
-                .abilitato(true)
-                .googleCaptcha(googleCaptcha)
-                .build();
+        GoogleCaptcha googleCaptcha = new GoogleCaptcha();
+        googleCaptcha.setServerURL("https://www.google.com/recaptcha/api/siteverify");
+        googleCaptcha.setSecretKey("test-secret-key");
+        googleCaptcha.setSiteKey("test-site-key");
+        googleCaptcha.setResponseParameter("g-recaptcha-response");
+        googleCaptcha.setConnectionTimeout(5000);
+        googleCaptcha.setReadTimeout(5000);
+        googleCaptcha.setSoglia(0.5);
+        googleCaptcha.setDenyOnFail(true);
+
+        Hardening hardening = new Hardening();
+        hardening.setAbilitato(true);
+        hardening.setGoogleCatpcha(googleCaptcha);
+        return hardening;
     }
 }

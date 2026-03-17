@@ -14,10 +14,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import it.govpay.common.configurazione.model.GoogleCaptcha;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.security.hardening.exception.ReCaptchaConfigurationException;
 import it.govpay.portal.security.hardening.model.CaptchaResponse;
-import it.govpay.portal.security.hardening.model.GoogleCaptcha;
-import it.govpay.portal.security.hardening.model.Hardening;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class ReCaptchaValidator {
@@ -31,7 +31,7 @@ public class ReCaptchaValidator {
     public ReCaptchaValidator(Hardening settings) {
         this.hardeningSettings = settings;
 
-        GoogleCaptcha captcha = settings.getGoogleCaptcha();
+        GoogleCaptcha captcha = settings.getGoogleCatpcha();
         if (captcha == null) {
             throw new ReCaptchaConfigurationException("Configurazione Google ReCaptcha non presente");
         }
@@ -66,7 +66,7 @@ public class ReCaptchaValidator {
     }
 
     public boolean validate(HttpServletRequest request) {
-        GoogleCaptcha captcha = hardeningSettings.getGoogleCaptcha();
+        GoogleCaptcha captcha = hardeningSettings.getGoogleCatpcha();
         String responseParameter = captcha.getResponseParameter();
 
         // Leggi il token ReCaptcha dalla request (parametro o header)

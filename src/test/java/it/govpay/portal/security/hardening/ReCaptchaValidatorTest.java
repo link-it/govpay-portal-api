@@ -20,10 +20,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import it.govpay.common.configurazione.model.GoogleCaptcha;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.security.hardening.exception.ReCaptchaConfigurationException;
 import it.govpay.portal.security.hardening.model.CaptchaResponse;
-import it.govpay.portal.security.hardening.model.GoogleCaptcha;
-import it.govpay.portal.security.hardening.model.Hardening;
 
 @ExtendWith(MockitoExtension.class)
 class ReCaptchaValidatorTest {
@@ -40,10 +40,9 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("Configurazione GoogleCaptcha null dovrebbe lanciare eccezione")
         void nullGoogleCaptchaShouldThrowException() {
-            Hardening hardening = Hardening.builder()
-                    .abilitato(true)
-                    .googleCaptcha(null)
-                    .build();
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            hardening.setGoogleCatpcha(null);
 
             assertThrows(ReCaptchaConfigurationException.class,
                     () -> new ReCaptchaValidator(hardening));
@@ -52,9 +51,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ServerURL mancante dovrebbe lanciare eccezione")
         void missingServerUrlShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .serverURL(null)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setServerURL(null);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -66,9 +64,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ServerURL vuota dovrebbe lanciare eccezione")
         void emptyServerUrlShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .serverURL("")
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setServerURL("");
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -80,9 +77,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("SecretKey mancante dovrebbe lanciare eccezione")
         void missingSecretKeyShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .secretKey(null)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setSecretKey(null);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -94,9 +90,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("SecretKey vuota dovrebbe lanciare eccezione")
         void emptySecretKeyShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .secretKey("   ")
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setSecretKey("   ");
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -108,9 +103,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ResponseParameter mancante dovrebbe lanciare eccezione")
         void missingResponseParameterShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .responseParameter(null)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setResponseParameter(null);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -122,9 +116,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ConnectionTimeout zero dovrebbe lanciare eccezione")
         void zeroConnectionTimeoutShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .connectionTimeout(0)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setConnectionTimeout(0);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -136,9 +129,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ConnectionTimeout negativo dovrebbe lanciare eccezione")
         void negativeConnectionTimeoutShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .connectionTimeout(-100)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setConnectionTimeout(-100);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -150,9 +142,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("ReadTimeout zero dovrebbe lanciare eccezione")
         void zeroReadTimeoutShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .readTimeout(0)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setReadTimeout(0);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -164,9 +155,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("Soglia zero dovrebbe lanciare eccezione")
         void zeroSogliaShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .soglia(0)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setSoglia(0);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -178,9 +168,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("Soglia negativa dovrebbe lanciare eccezione")
         void negativeSogliaShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .soglia(-0.5)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setSoglia(-0.5);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -192,9 +181,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("Soglia maggiore di 1 dovrebbe lanciare eccezione")
         void sogliaGreaterThanOneShouldThrowException() {
-            GoogleCaptcha captcha = createCaptchaBuilder()
-                    .soglia(1.5)
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setSoglia(1.5);
             Hardening hardening = createHardening(captcha);
 
             ReCaptchaConfigurationException ex = assertThrows(
@@ -398,16 +386,14 @@ class ReCaptchaValidatorTest {
 
         @BeforeEach
         void setUp() throws Exception {
-            GoogleCaptcha captchaDeny = createValidCaptchaBuilder()
-                    .denyOnFail(true)
-                    .build();
+            GoogleCaptcha captchaDeny = createValidCaptcha();
+            captchaDeny.setDenyOnFail(true);
             Hardening hardeningDeny = createHardening(captchaDeny);
             validatorDenyOnFail = new ReCaptchaValidator(hardeningDeny);
             injectMockRestTemplate(validatorDenyOnFail, restTemplate);
 
-            GoogleCaptcha captchaAllow = createValidCaptchaBuilder()
-                    .denyOnFail(false)
-                    .build();
+            GoogleCaptcha captchaAllow = createValidCaptcha();
+            captchaAllow.setDenyOnFail(false);
             Hardening hardeningAllow = createHardening(captchaAllow);
             validatorAllowOnFail = new ReCaptchaValidator(hardeningAllow);
             injectMockRestTemplate(validatorAllowOnFail, restTemplate);
@@ -504,9 +490,8 @@ class ReCaptchaValidatorTest {
         @Test
         @DisplayName("URL con query string esistente dovrebbe aggiungere parametri con &")
         void urlWithExistingQueryStringShouldAppendWithAmpersand() throws Exception {
-            GoogleCaptcha captcha = createValidCaptchaBuilder()
-                    .serverURL("https://example.com/verify?version=3")
-                    .build();
+            GoogleCaptcha captcha = createValidCaptcha();
+            captcha.setServerURL("https://example.com/verify?version=3");
             Hardening hardening = createHardening(captcha);
             ReCaptchaValidator validator = new ReCaptchaValidator(hardening);
             injectMockRestTemplate(validator, restTemplate);
@@ -526,31 +511,24 @@ class ReCaptchaValidatorTest {
         }
     }
 
-    private GoogleCaptcha.GoogleCaptchaBuilder createCaptchaBuilder() {
-        return GoogleCaptcha.builder()
-                .serverURL("https://www.google.com/recaptcha/api/siteverify")
-                .secretKey("test-secret-key")
-                .siteKey("test-site-key")
-                .responseParameter(RESPONSE_PARAMETER)
-                .connectionTimeout(5000)
-                .readTimeout(5000)
-                .soglia(0.5)
-                .denyOnFail(true);
-    }
-
-    private GoogleCaptcha.GoogleCaptchaBuilder createValidCaptchaBuilder() {
-        return createCaptchaBuilder();
-    }
-
     private GoogleCaptcha createValidCaptcha() {
-        return createCaptchaBuilder().build();
+        GoogleCaptcha captcha = new GoogleCaptcha();
+        captcha.setServerURL("https://www.google.com/recaptcha/api/siteverify");
+        captcha.setSecretKey("test-secret-key");
+        captcha.setSiteKey("test-site-key");
+        captcha.setResponseParameter(RESPONSE_PARAMETER);
+        captcha.setConnectionTimeout(5000);
+        captcha.setReadTimeout(5000);
+        captcha.setSoglia(0.5);
+        captcha.setDenyOnFail(true);
+        return captcha;
     }
 
     private Hardening createHardening(GoogleCaptcha captcha) {
-        return Hardening.builder()
-                .abilitato(true)
-                .googleCaptcha(captcha)
-                .build();
+        Hardening hardening = new Hardening();
+        hardening.setAbilitato(true);
+        hardening.setGoogleCatpcha(captcha);
+        return hardening;
     }
 
     private void injectMockRestTemplate(ReCaptchaValidator validator, RestTemplate mockRestTemplate) throws Exception {

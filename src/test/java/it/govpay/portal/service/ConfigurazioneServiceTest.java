@@ -13,25 +13,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.govpay.portal.entity.Configurazione;
-import it.govpay.portal.repository.ConfigurazioneRepository;
-import it.govpay.portal.security.hardening.model.Hardening;
+import it.govpay.common.configurazione.model.GoogleCaptcha;
+import it.govpay.common.configurazione.model.Hardening;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurazioneServiceTest {
 
     @Mock
-    private ConfigurazioneRepository configurazioneRepository;
+    private it.govpay.common.configurazione.service.ConfigurazioneService commonConfigurazioneService;
 
     private ConfigurazioneService service;
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        service = new ConfigurazioneService(configurazioneRepository, objectMapper);
+        service = new ConfigurazioneService(commonConfigurazioneService);
     }
 
     @Nested
@@ -41,24 +36,7 @@ class ConfigurazioneServiceTest {
         @Test
         @DisplayName("Configurazione non presente dovrebbe restituire hardening disabilitato")
         void missingConfigurationShouldReturnDisabledHardening() {
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.empty());
-
-            Hardening result = service.getHardening();
-
-            assertNotNull(result);
-            assertFalse(result.isAbilitato());
-        }
-
-        @Test
-        @DisplayName("Configurazione con valore null dovrebbe restituire hardening disabilitato")
-        void configurationWithNullValueShouldReturnDisabledHardening() {
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore(null);
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
+            when(commonConfigurazioneService.getHardening()).thenReturn(Optional.empty());
 
             Hardening result = service.getHardening();
 
@@ -69,50 +47,33 @@ class ConfigurazioneServiceTest {
         @Test
         @DisplayName("Configurazione valida dovrebbe restituire hardening configurato")
         void validConfigurationShouldReturnConfiguredHardening() {
-            String jsonConfig = """
-                    {
-                        "abilitato": true,
-                        "googleCaptcha": {
-                            "serverURL": "https://www.google.com/recaptcha/api/siteverify",
-                            "secretKey": "test-secret",
-                            "siteKey": "test-site",
-                            "responseParameter": "g-recaptcha-response",
-                            "connectionTimeout": 5000,
-                            "readTimeout": 5000,
-                            "soglia": 0.5,
-                            "denyOnFail": true
-                        }
-                    }
-                    """;
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            GoogleCaptcha captcha = new GoogleCaptcha();
+            captcha.setServerURL("https://www.google.com/recaptcha/api/siteverify");
+            captcha.setSecretKey("test-secret");
+            captcha.setSoglia(0.5);
+            hardening.setGoogleCatpcha(captcha);
 
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore(jsonConfig);
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
+            when(commonConfigurazioneService.getHardening()).thenReturn(Optional.of(hardening));
 
             Hardening result = service.getHardening();
 
             assertNotNull(result);
             assertTrue(result.isAbilitato());
-            assertNotNull(result.getGoogleCaptcha());
-            assertEquals("https://www.google.com/recaptcha/api/siteverify", result.getGoogleCaptcha().getServerURL());
-            assertEquals("test-secret", result.getGoogleCaptcha().getSecretKey());
-            assertEquals(0.5, result.getGoogleCaptcha().getSoglia());
+            assertNotNull(result.getGoogleCatpcha());
+            assertEquals("https://www.google.com/recaptcha/api/siteverify", result.getGoogleCatpcha().getServerURL());
+            assertEquals("test-secret", result.getGoogleCatpcha().getSecretKey());
+            assertEquals(0.5, result.getGoogleCatpcha().getSoglia());
         }
 
         @Test
         @DisplayName("Configurazione abilitato=false dovrebbe restituire hardening disabilitato")
         void disabledConfigurationShouldReturnDisabledHardening() {
-            String jsonConfig = "{\"abilitato\": false}";
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(false);
 
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore(jsonConfig);
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
+            when(commonConfigurazioneService.getHardening()).thenReturn(Optional.of(hardening));
 
             Hardening result = service.getHardening();
 
@@ -121,14 +82,10 @@ class ConfigurazioneServiceTest {
         }
 
         @Test
-        @DisplayName("JSON non valido dovrebbe restituire hardening disabilitato")
-        void invalidJsonShouldReturnDisabledHardening() {
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore("questo non e' json valido{");
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
+        @DisplayName("Eccezione dovrebbe restituire hardening disabilitato")
+        void exceptionShouldReturnDisabledHardening() {
+            when(commonConfigurazioneService.getHardening())
+                    .thenThrow(new IllegalArgumentException("JSON non valido"));
 
             Hardening result = service.getHardening();
 
@@ -137,63 +94,36 @@ class ConfigurazioneServiceTest {
         }
 
         @Test
-        @DisplayName("JSON parziale dovrebbe essere parsato correttamente")
-        void partialJsonShouldBeParsedCorrectly() {
-            String jsonConfig = "{\"abilitato\": true}";
+        @DisplayName("Configurazione con tutti i campi GoogleCaptcha dovrebbe essere restituita")
+        void fullGoogleCaptchaConfigShouldBeReturned() {
+            Hardening hardening = new Hardening();
+            hardening.setAbilitato(true);
+            GoogleCaptcha captcha = new GoogleCaptcha();
+            captcha.setServerURL("https://custom.server/verify");
+            captcha.setSecretKey("my-secret-key");
+            captcha.setSiteKey("my-site-key");
+            captcha.setResponseParameter("custom-param");
+            captcha.setConnectionTimeout(10000);
+            captcha.setReadTimeout(15000);
+            captcha.setSoglia(0.7);
+            captcha.setDenyOnFail(false);
+            hardening.setGoogleCatpcha(captcha);
 
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore(jsonConfig);
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
-
-            Hardening result = service.getHardening();
-
-            assertNotNull(result);
-            assertTrue(result.isAbilitato());
-            assertNull(result.getGoogleCaptcha());
-        }
-
-        @Test
-        @DisplayName("Configurazione con tutti i campi GoogleCaptcha dovrebbe essere parsata")
-        void fullGoogleCaptchaConfigShouldBeParsed() {
-            String jsonConfig = """
-                    {
-                        "abilitato": true,
-                        "googleCaptcha": {
-                            "serverURL": "https://custom.server/verify",
-                            "secretKey": "my-secret-key",
-                            "siteKey": "my-site-key",
-                            "responseParameter": "custom-param",
-                            "connectionTimeout": 10000,
-                            "readTimeout": 15000,
-                            "soglia": 0.7,
-                            "denyOnFail": false
-                        }
-                    }
-                    """;
-
-            Configurazione config = new Configurazione();
-            config.setNome(Hardening.CONFIGURAZIONE_HARDENING);
-            config.setValore(jsonConfig);
-
-            when(configurazioneRepository.findByNome(Hardening.CONFIGURAZIONE_HARDENING))
-                    .thenReturn(Optional.of(config));
+            when(commonConfigurazioneService.getHardening()).thenReturn(Optional.of(hardening));
 
             Hardening result = service.getHardening();
 
             assertNotNull(result);
             assertTrue(result.isAbilitato());
-            assertNotNull(result.getGoogleCaptcha());
-            assertEquals("https://custom.server/verify", result.getGoogleCaptcha().getServerURL());
-            assertEquals("my-secret-key", result.getGoogleCaptcha().getSecretKey());
-            assertEquals("my-site-key", result.getGoogleCaptcha().getSiteKey());
-            assertEquals("custom-param", result.getGoogleCaptcha().getResponseParameter());
-            assertEquals(10000, result.getGoogleCaptcha().getConnectionTimeout());
-            assertEquals(15000, result.getGoogleCaptcha().getReadTimeout());
-            assertEquals(0.7, result.getGoogleCaptcha().getSoglia());
-            assertFalse(result.getGoogleCaptcha().isDenyOnFail());
+            assertNotNull(result.getGoogleCatpcha());
+            assertEquals("https://custom.server/verify", result.getGoogleCatpcha().getServerURL());
+            assertEquals("my-secret-key", result.getGoogleCatpcha().getSecretKey());
+            assertEquals("my-site-key", result.getGoogleCatpcha().getSiteKey());
+            assertEquals("custom-param", result.getGoogleCatpcha().getResponseParameter());
+            assertEquals(10000, result.getGoogleCatpcha().getConnectionTimeout());
+            assertEquals(15000, result.getGoogleCatpcha().getReadTimeout());
+            assertEquals(0.7, result.getGoogleCatpcha().getSoglia());
+            assertFalse(result.getGoogleCatpcha().isDenyOnFail());
         }
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.util.StringUtils;
 
 import it.govpay.portal.repository.VersamentoRepository;
-import it.govpay.portal.security.hardening.model.Hardening;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import jakarta.servlet.http.HttpServletRequest;
 

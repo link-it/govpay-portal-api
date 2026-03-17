@@ -27,7 +27,7 @@ import it.govpay.portal.model.ListaPendenze;
 import it.govpay.portal.model.Pendenza;
 import it.govpay.portal.model.StatoPendenza;
 import it.govpay.portal.security.hardening.ReCaptchaValidator;
-import it.govpay.portal.security.hardening.model.Hardening;
+import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import it.govpay.portal.service.CreaPendenzaService;
 import it.govpay.portal.service.PendenzeService;
@@ -115,7 +115,7 @@ public class PendenzeController {
     private void validaReCaptcha(HttpServletRequest request) {
         Hardening hardening = configurazioneService.getHardening();
 
-        if (hardening.isAbilitato() && hardening.getGoogleCaptcha() != null) {
+        if (hardening.isAbilitato() && hardening.getGoogleCatpcha() != null) {
             log.debug("Validazione reCAPTCHA abilitata");
 
             try {
@@ -130,7 +130,7 @@ public class PendenzeController {
             } catch (Exception e) {
                 log.error("Errore durante la validazione reCAPTCHA: {}", e.getMessage());
                 // Se la configurazione prevede deny on fail, nega l'accesso
-                if (hardening.getGoogleCaptcha().isDenyOnFail()) {
+                if (hardening.getGoogleCatpcha().isDenyOnFail()) {
                     throw new ForbiddenException("Errore nella validazione reCAPTCHA");
                 }
             }
