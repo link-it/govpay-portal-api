@@ -1,3 +1,25 @@
+2026-03-20  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.6.
+
+	* [GDE]
+	Aggiunto salvataggio payload richiesta e risposta nel Giornale degli
+	Eventi per tutte le chiamate API. EventoPortalMapper ora utilizza
+	GdeUtils.extractRequestPayload() di govpay-common per codificare i
+	payload in Base64 nei campi DettaglioRichiesta.payload e
+	DettaglioRisposta.payload. Aggiornate le firme di GdeService e i
+	controller AnagraficaController e PendenzeController per passare i
+	body di richiesta e risposta.
+
+	* [CI]
+	Aggiornate GitHub Actions alla versione compatibile con Node.js 24:
+	actions/checkout v6, actions/setup-java v5, actions/cache v5,
+	actions/upload-artifact v4, actions/download-artifact v4.
+	Aggiornate docker/setup-buildx-action e docker/login-action a v4.
+	Aggiunta variabile FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 per forzare
+	l'uso di Node.js 24 nei runner.
+
 2026-03-17  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
