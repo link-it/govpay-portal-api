@@ -27,13 +27,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
-        fetch-depth: 0  # Clona tutta la history Git 
+        fetch-depth: 0  # Clona tutta la history Git
     - name: Set timezone to Europe/Rome
       run: sudo timedatectl set-timezone Europe/Rome
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -68,7 +68,7 @@ jobs:
 
     #  Cache .dependency-check/data
     - name: Cache OWASP Dependency-Check DB
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: .dependency-check/data
         key: ${{ runner.os }}-owasp-${{ github.sha }}
@@ -123,13 +123,13 @@ jobs:
         python3 .github/workflows/scripts/analyze_licenses.py --exceptions .github/workflows/scripts/license-exceptions.json
 
     - name: Archive licenses analysis results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: third-party-licenses
         path: third-party-licenses
 
     - name: Upload artifact to GitHub
-      uses: actions/upload-artifact@v4.6.0
+      uses: actions/upload-artifact@v5
       with:
         name: govpay-portal-api
         path: |
@@ -146,16 +146,16 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Download artifact from build job
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: govpay-portal-api
         path: target/  # Assicurati che il file venga scaricato nella cartella target
 
     - name: Download third-party-licenses artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: third-party-licenses
         path: third-party-licenses
@@ -199,7 +199,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3

@@ -80,7 +80,8 @@ public class GdeService extends AbstractGdeService {
     }
 
     public void saveEventOk(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
-                             HttpServletRequest request, int statusCode, String idDominio) {
+                             HttpServletRequest request, int statusCode, String idDominio,
+                             Object requestBody, Object responseBody) {
         String transactionId = UUID.randomUUID().toString();
         NuovoEvento evento = eventoPortalMapper.createEventoOk(tipoEvento, transactionId, dataStart, dataEnd);
 
@@ -88,15 +89,15 @@ public class GdeService extends AbstractGdeService {
             evento.setIdDominio(idDominio);
         }
 
-        eventoPortalMapper.setParametriRichiesta(evento, request);
-        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode);
+        eventoPortalMapper.setParametriRichiesta(evento, request, requestBody);
+        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode, responseBody);
 
         sendEventAsync(evento);
     }
 
     public void saveEventKo(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
                              HttpServletRequest request, int statusCode, Exception exception,
-                             String idDominio) {
+                             String idDominio, Object requestBody) {
         String transactionId = UUID.randomUUID().toString();
         NuovoEvento evento = eventoPortalMapper.createEventoKo(tipoEvento, transactionId, dataStart, dataEnd,
                 statusCode, exception);
@@ -105,8 +106,9 @@ public class GdeService extends AbstractGdeService {
             evento.setIdDominio(idDominio);
         }
 
-        eventoPortalMapper.setParametriRichiesta(evento, request);
-        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode);
+        eventoPortalMapper.setParametriRichiesta(evento, request, requestBody);
+        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode,
+                exception != null ? exception.getMessage() : null);
 
         sendEventAsync(evento);
     }

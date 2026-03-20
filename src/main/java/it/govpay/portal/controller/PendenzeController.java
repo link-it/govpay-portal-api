@@ -100,11 +100,11 @@ public class PendenzeController {
 
             ResponseEntity<Pendenza> response = ResponseEntity.ok(pendenza);
             gdeService.saveEventOk(Costanti.OP_CREA_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), idDominio);
+                    request, HttpStatus.OK.value(), idDominio, requestBody, pendenza);
             return response;
         } catch (Exception e) {
             gdeService.saveEventKo(Costanti.OP_CREA_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, requestBody);
             throw e;
         }
     }
@@ -185,7 +185,7 @@ public class PendenzeController {
                 ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header richiesto: application/json o application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
-                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
@@ -213,22 +213,22 @@ public class PendenzeController {
                 response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
-                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
                 gdeService.saveEventOk(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
-                        request, statusCode, idDominio);
+                        request, statusCode, idDominio, null, response.getBody());
             } else {
                 gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
-                        request, statusCode, null, idDominio);
+                        request, statusCode, null, idDominio, null);
             }
             return response;
         } catch (Exception e) {
             gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
             throw e;
         }
     }
@@ -250,15 +250,15 @@ public class PendenzeController {
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
                 gdeService.saveEventOk(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
-                        request, statusCode, idDominio);
+                        request, statusCode, idDominio, null, response.getBody());
             } else {
                 gdeService.saveEventKo(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
-                        request, statusCode, null, idDominio);
+                        request, statusCode, null, idDominio, null);
             }
             return response;
         } catch (Exception e) {
             gdeService.saveEventKo(Costanti.OP_GET_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
             throw e;
         }
     }
@@ -276,11 +276,11 @@ public class PendenzeController {
             ListaPendenze pendenze = pendenzeService.getPendenze(idDominio, stato);
             ResponseEntity<ListaPendenze> response = ResponseEntity.ok(pendenze);
             gdeService.saveEventOk(Costanti.OP_GET_PENDENZE, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), idDominio);
+                    request, HttpStatus.OK.value(), idDominio, null, pendenze);
             return response;
         } catch (Exception e) {
             gdeService.saveEventKo(Costanti.OP_GET_PENDENZE, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
             throw e;
         }
     }
@@ -303,7 +303,7 @@ public class PendenzeController {
                 ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header richiesto: application/json o application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
-                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
@@ -331,22 +331,22 @@ public class PendenzeController {
                 response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header non supportato. Valori ammessi: application/json, application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
-                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio);
+                        request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
                 gdeService.saveEventOk(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
-                        request, statusCode, idDominio);
+                        request, statusCode, idDominio, null, response.getBody());
             } else {
                 gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
-                        request, statusCode, null, idDominio);
+                        request, statusCode, null, idDominio, null);
             }
             return response;
         } catch (Exception e) {
             gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio);
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
             throw e;
         }
     }

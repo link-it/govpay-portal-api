@@ -9,6 +9,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.govpay.common.gde.GdeUtils;
 import it.govpay.gde.client.beans.CategoriaEvento;
 import it.govpay.gde.client.beans.ComponenteEvento;
 import it.govpay.gde.client.beans.DettaglioRichiesta;
@@ -26,6 +29,12 @@ public class EventoPortalMapper {
 
     @Value("${govpay.portal.cluster-id}")
     private String clusterId;
+
+    private final ObjectMapper objectMapper;
+
+    public EventoPortalMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public NuovoEvento createEvento(String tipoEvento, String transactionId,
                                      OffsetDateTime dataStart, OffsetDateTime dataEnd) {
@@ -69,7 +78,7 @@ public class EventoPortalMapper {
         return nuovoEvento;
     }
 
-    public void setParametriRichiesta(NuovoEvento nuovoEvento, HttpServletRequest request) {
+    public void setParametriRichiesta(NuovoEvento nuovoEvento, HttpServletRequest request, Object requestBody) {
         DettaglioRichiesta dettaglioRichiesta = new DettaglioRichiesta();
         dettaglioRichiesta.setDataOraRichiesta(nuovoEvento.getDataEvento());
         dettaglioRichiesta.setMethod(request.getMethod());
@@ -83,14 +92,24 @@ public class EventoPortalMapper {
 
         dettaglioRichiesta.setHeaders(extractHeaders(request));
 
+        String payload = GdeUtils.extractRequestPayload(objectMapper, requestBody);
+        if (payload != null) {
+            dettaglioRichiesta.setPayload(payload);
+        }
+
         nuovoEvento.setParametriRichiesta(dettaglioRichiesta);
     }
 
-    public void setParametriRisposta(NuovoEvento nuovoEvento, OffsetDateTime dataEnd, int statusCode) {
+    public void setParametriRisposta(NuovoEvento nuovoEvento, OffsetDateTime dataEnd, int statusCode, Object responseBody) {
         DettaglioRisposta dettaglioRisposta = new DettaglioRisposta();
         dettaglioRisposta.setDataOraRisposta(dataEnd);
         dettaglioRisposta.setStatus(BigDecimal.valueOf(statusCode));
         dettaglioRisposta.setHeaders(new ArrayList<>());
+
+        String payload = GdeUtils.extractRequestPayload(objectMapper, responseBody);
+        if (payload != null) {
+            dettaglioRisposta.setPayload(payload);
+        }
 
         nuovoEvento.setParametriRisposta(dettaglioRisposta);
     }
