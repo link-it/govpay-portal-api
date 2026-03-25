@@ -1,6 +1,18 @@
 2026-03-25  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
+	Avanzata versione a 1.1.8.
+
+	* [Bug Fix]
+	Corretto conflitto di bean definition per configurazioneRepository
+	in deploy WAR su Tomcat. Disabilitata JpaRepositoriesAutoConfiguration
+	e aggiunto @EnableJpaRepositories esplicito sul package
+	it.govpay.portal.repository per evitare che lo scan automatico
+	rilevi ConfigurazioneRepository di govpay-common sul classpath.
+
+2026-03-25  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
 	Avanzata versione a 1.1.7.
 
 	* [API]

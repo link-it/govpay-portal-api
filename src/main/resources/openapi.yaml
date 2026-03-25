@@ -84,7 +84,7 @@ paths:
         Restituisce l'elenco delle pendenze dell'utente autenticato.
 
         **Disponibilità**: Solo API Autenticata (SPID)
-      operationId: getPendenze
+      operationId: findPendenze
       parameters:
         - $ref: '#/components/parameters/IdDominioPath'
         - $ref: '#/components/parameters/StatoPendenzaQuery'
@@ -144,7 +144,7 @@ paths:
         Restituisce l'elenco degli Enti Creditori
 
         **Disponibilità**: Public + Autenticata
-      operationId: getDomini
+      operationId: findDomini
       security:
         - spidFiscalNumber: []
         - {}
@@ -234,7 +234,7 @@ paths:
         Restituisce l'elenco dei tipi pendenza (servizi) disponibili per un dominio/creditore.
 
         **Disponibilità**: Public + Autenticata
-      operationId: getTipiPendenza
+      operationId: findTipiPendenza
       parameters:
         - $ref: '#/components/parameters/IdDominioPath'
         - $ref: '#/components/parameters/GruppoQuery'
@@ -339,7 +339,7 @@ paths:
         Se viene specificato l'header `Accept: application/pdf`, restituisce il PDF della ricevuta.
 
         **Disponibilità**: Public + Autenticata
-      operationId: getRicevuta
+      operationId: getRt
       parameters:
         - $ref: '#/components/parameters/IdDominioPath'
         - $ref: '#/components/parameters/NumeroAvvisoPath'
@@ -379,7 +379,7 @@ paths:
         La struttura del body dipende dalla definizione JSON Schema del tipo pendenza.
 
         **Disponibilità**: Public + Autenticata
-      operationId: creaPendenza
+      operationId: addPendenza
       parameters:
         - $ref: '#/components/parameters/IdDominioPath'
         - $ref: '#/components/parameters/IdTipoPendenzaPath'

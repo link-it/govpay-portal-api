@@ -74,7 +74,7 @@ public class AnagraficaController implements AnagraficaApi {
     }
 
     @Override
-    public ResponseEntity<ListaDomini> getDomini() {
+    public ResponseEntity<ListaDomini> findDomini() {
         OffsetDateTime startTime = OffsetDateTime.now();
 
         try {
@@ -153,7 +153,7 @@ public class AnagraficaController implements AnagraficaApi {
     }
 
     @Override
-    public ResponseEntity<ListaTipiPendenza> getTipiPendenza(String idDominio, String gruppo, String descriione) {
+    public ResponseEntity<ListaTipiPendenza> findTipiPendenza(String idDominio, String gruppo, String descriione) {
         OffsetDateTime startTime = OffsetDateTime.now();
 
         try {

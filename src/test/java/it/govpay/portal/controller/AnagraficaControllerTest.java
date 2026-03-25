@@ -104,7 +104,7 @@ class AnagraficaControllerTest {
 
             when(anagraficaService.getDomini()).thenReturn(listaDomini);
 
-            ResponseEntity<ListaDomini> response = anagraficaController.getDomini();
+            ResponseEntity<ListaDomini> response = anagraficaController.findDomini();
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -120,7 +120,7 @@ class AnagraficaControllerTest {
 
             when(anagraficaService.getDomini()).thenReturn(listaDomini);
 
-            ResponseEntity<ListaDomini> response = anagraficaController.getDomini();
+            ResponseEntity<ListaDomini> response = anagraficaController.findDomini();
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody().getRisultati().isEmpty());
@@ -209,7 +209,7 @@ class AnagraficaControllerTest {
 
             when(anagraficaService.getTipiPendenza("12345678901")).thenReturn(listaTipi);
 
-            ResponseEntity<ListaTipiPendenza> response = anagraficaController.getTipiPendenza(
+            ResponseEntity<ListaTipiPendenza> response = anagraficaController.findTipiPendenza(
                     "12345678901", null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
