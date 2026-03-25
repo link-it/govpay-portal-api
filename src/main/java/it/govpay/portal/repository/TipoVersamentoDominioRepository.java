@@ -21,7 +21,8 @@ public interface TipoVersamentoDominioRepository extends JpaRepository<TipoVersa
            "WHERE tvd.dominio.id = :idDominio AND tvd.abilitato = :abilitato " +
            "AND ((tvd.pagFormDefinizione IS NOT NULL AND tvd.pagFormTipo IS NOT NULL) " +
            "  OR (tv.pagFormDefinizione IS NOT NULL AND tv.pagFormTipo IS NOT NULL " +
-           "      AND tvd.pagFormDefinizione IS NULL AND tvd.pagFormTipo IS NULL))")
+           "      AND tvd.pagFormDefinizione IS NULL AND tvd.pagFormTipo IS NULL)) " +
+           "ORDER BY tv.descrizione")
     List<TipoVersamentoDominio> findByDominioIdAndAbilitatoWithFormPortale(
             @Param("idDominio") Long idDominio, @Param("abilitato") Boolean abilitato);
 
