@@ -82,8 +82,14 @@ public class GdeService extends AbstractGdeService {
     public void saveEventOk(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
                              HttpServletRequest request, int statusCode, String idDominio,
                              Object requestBody, Object responseBody) {
+        saveEventOk(tipoEvento, dataStart, dataEnd, request, statusCode, idDominio, requestBody, responseBody, null);
+    }
+
+    public void saveEventOk(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
+                             HttpServletRequest request, int statusCode, String idDominio,
+                             Object requestBody, Object responseBody, String principal) {
         String transactionId = UUID.randomUUID().toString();
-        NuovoEvento evento = eventoPortalMapper.createEventoOk(tipoEvento, transactionId, dataStart, dataEnd);
+        NuovoEvento evento = eventoPortalMapper.createEventoOk(tipoEvento, transactionId, dataStart, dataEnd, principal);
 
         if (idDominio != null) {
             evento.setIdDominio(idDominio);
@@ -98,9 +104,15 @@ public class GdeService extends AbstractGdeService {
     public void saveEventKo(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
                              HttpServletRequest request, int statusCode, Exception exception,
                              String idDominio, Object requestBody) {
+        saveEventKo(tipoEvento, dataStart, dataEnd, request, statusCode, exception, idDominio, requestBody, null);
+    }
+
+    public void saveEventKo(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
+                             HttpServletRequest request, int statusCode, Exception exception,
+                             String idDominio, Object requestBody, String principal) {
         String transactionId = UUID.randomUUID().toString();
         NuovoEvento evento = eventoPortalMapper.createEventoKo(tipoEvento, transactionId, dataStart, dataEnd,
-                statusCode, exception);
+                statusCode, exception, principal);
 
         if (idDominio != null) {
             evento.setIdDominio(idDominio);

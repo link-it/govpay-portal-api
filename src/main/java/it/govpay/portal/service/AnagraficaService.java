@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.govpay.portal.config.SecurityProperties;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.exception.UnauthorizedException;
@@ -31,16 +32,19 @@ public class AnagraficaService {
     private final DominioLogoRepository dominioLogoRepository;
     private final TipoVersamentoDominioRepository tipoVersamentoDominioRepository;
     private final AnagraficaMapper anagraficaMapper;
+    private final SecurityProperties securityProperties;
 
     public AnagraficaService(
             DominioRepository dominioRepository,
             DominioLogoRepository dominioLogoRepository,
             TipoVersamentoDominioRepository tipoVersamentoDominioRepository,
-            AnagraficaMapper anagraficaMapper) {
+            AnagraficaMapper anagraficaMapper,
+            SecurityProperties securityProperties) {
         this.dominioRepository = dominioRepository;
         this.dominioLogoRepository = dominioLogoRepository;
         this.tipoVersamentoDominioRepository = tipoVersamentoDominioRepository;
         this.anagraficaMapper = anagraficaMapper;
+        this.securityProperties = securityProperties;
     }
 
     public Profilo getProfilo() {
@@ -64,9 +68,23 @@ public class AnagraficaService {
         return anagrafica;
     }
 
+    public Profilo login() {
+        return getProfilo();
+    }
+
+    public Optional<String> getLoginRedirectUrl(String urlID) {
+        getAuthenticatedUser();
+        return Optional.ofNullable(securityProperties.getLoginRedirectUrls().get(urlID));
+    }
+
     public void logout() {
         // Verifica che l'utente sia autenticato prima di procedere con il logout
         getAuthenticatedUser();
+    }
+
+    public Optional<String> getLogoutRedirectUrl(String urlID) {
+        getAuthenticatedUser();
+        return Optional.ofNullable(securityProperties.getLogoutRedirectUrls().get(urlID));
     }
 
     public ListaDomini getDomini() {

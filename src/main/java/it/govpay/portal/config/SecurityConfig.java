@@ -1,5 +1,9 @@
 package it.govpay.portal.config;
 
+import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,29 +12,29 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import org.springframework.web.filter.OncePerRequestFilter;
-
+import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.repository.VersamentoRepository;
 import it.govpay.portal.security.hardening.matcher.AvvisiRequestMatcher;
 import it.govpay.portal.security.hardening.matcher.HardeningRequestMatcher;
 import it.govpay.portal.service.ConfigurazioneService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -40,13 +44,16 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
     private final ConfigurazioneService configurazioneService;
     private final VersamentoRepository versamentoRepository;
+    private final GdeService gdeService;
 
     public SecurityConfig(SecurityProperties securityProperties,
             ConfigurazioneService configurazioneService,
-            VersamentoRepository versamentoRepository) {
+            VersamentoRepository versamentoRepository,
+            GdeService gdeService) {
         this.securityProperties = securityProperties;
         this.configurazioneService = configurazioneService;
         this.versamentoRepository = versamentoRepository;
+        this.gdeService = gdeService;
     }
 
     @Bean
@@ -111,10 +118,14 @@ public class SecurityConfig {
                 // ==========================================
                 // Endpoint SOLO AUTENTICATI (SPID)
                 // ==========================================
+                // Login
+                .requestMatchers(HttpMethod.GET, "/login").authenticated()
+                .requestMatchers(HttpMethod.GET, "/login/{urlID}").authenticated()
                 // Profilo utente
                 .requestMatchers(HttpMethod.GET, "/profilo").authenticated()
                 // Logout
                 .requestMatchers(HttpMethod.GET, "/logout").authenticated()
+                .requestMatchers(HttpMethod.GET, "/logout/{urlID}").authenticated()
                 // Elenco pendenze utente
                 .requestMatchers(HttpMethod.GET, "/pendenze/{idDominio}").authenticated()
                 // Dettaglio pendenza
@@ -156,7 +167,7 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .contentTypeOptions(cto -> cto.disable())
                 .frameOptions(fo -> fo.sameOrigin())
-                .xssProtection(xss -> xss.disable())
+                .xssProtection(XXssConfig::disable)
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
@@ -165,6 +176,7 @@ public class SecurityConfig {
             )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
+                    tracciaFallimentoAutenticazione(request, authException);
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
@@ -175,6 +187,7 @@ public class SecurityConfig {
                     ));
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    tracciaFallimentoAutenticazione(request, accessDeniedException);
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
@@ -192,6 +205,30 @@ public class SecurityConfig {
             .addFilterAfter(new CsrfCookieFilter(), org.springframework.security.web.csrf.CsrfFilter.class);
 
         return http.build();
+    }
+
+    private void tracciaFallimentoAutenticazione(HttpServletRequest request, Exception exception) {
+        String tipoEvento = resolveOperationType(request.getRequestURI());
+        if (tipoEvento != null) {
+            OffsetDateTime now = OffsetDateTime.now();
+            gdeService.saveEventKo(tipoEvento, now, now,
+                    request, HttpStatus.FORBIDDEN.value(), exception, null, null);
+        }
+    }
+
+    private static final Map<String, String> AUTH_ENDPOINT_MAP = Map.of(
+            "/profilo", Costanti.OP_GET_PROFILO,
+            "/logout", Costanti.OP_LOGOUT
+    );
+
+    private String resolveOperationType(String requestUri) {
+        // Controlla match esatto o con prefisso (es. /login/urlID)
+        for (Map.Entry<String, String> entry : AUTH_ENDPOINT_MAP.entrySet()) {
+            if (requestUri.equals(entry.getKey()) || requestUri.startsWith(entry.getKey() + "/")) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     /**

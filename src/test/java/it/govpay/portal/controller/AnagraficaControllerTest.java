@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.model.Dominio;
 import it.govpay.portal.model.ListaDomini;
@@ -72,6 +73,72 @@ class AnagraficaControllerTest {
     }
 
     @Nested
+    @DisplayName("login Tests")
+    class LoginTests {
+
+        @Test
+        @DisplayName("Dovrebbe restituire 200 con profilo utente")
+        void shouldReturn200WithProfilo() {
+            Profilo profilo = new Profilo();
+            profilo.setNome("RSSMRA80A01H501U");
+
+            when(anagraficaService.login()).thenReturn(profilo);
+
+            ResponseEntity<Profilo> response = anagraficaController.login();
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals("RSSMRA80A01H501U", response.getBody().getNome());
+        }
+    }
+
+    @Nested
+    @DisplayName("loginWithRedirect Tests")
+    class LoginWithRedirectTests {
+
+        @Test
+        @DisplayName("Dovrebbe restituire 303 con redirect URL configurata")
+        void shouldReturn303WithConfiguredUrl() {
+            when(anagraficaService.getLoginRedirectUrl("portale"))
+                    .thenReturn(Optional.of("http://localhost:3000/dashboard"));
+            when(request.getParameterMap()).thenReturn(new HashMap<>());
+
+            ResponseEntity<Void> response = anagraficaController.loginWithRedirect("portale");
+
+            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
+            assertNotNull(response.getHeaders().getLocation());
+            assertEquals("http://localhost:3000/dashboard",
+                    response.getHeaders().getLocation().toString());
+        }
+
+        @Test
+        @DisplayName("Dovrebbe inoltrare i query parameter alla redirect URL")
+        void shouldForwardQueryParams() {
+            when(anagraficaService.getLoginRedirectUrl("portale"))
+                    .thenReturn(Optional.of("http://localhost:3000/dashboard"));
+            HashMap<String, String[]> params = new HashMap<>();
+            params.put("returnTo", new String[]{"/pagamenti"});
+            when(request.getParameterMap()).thenReturn(params);
+
+            ResponseEntity<Void> response = anagraficaController.loginWithRedirect("portale");
+
+            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
+            assertTrue(response.getHeaders().getLocation().toString()
+                    .contains("returnTo=/pagamenti"));
+        }
+
+        @Test
+        @DisplayName("Dovrebbe lanciare NotFoundException per urlID non configurato")
+        void shouldThrowNotFoundForUnknownUrlId() {
+            when(anagraficaService.getLoginRedirectUrl("sconosciuto"))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> anagraficaController.loginWithRedirect("sconosciuto"));
+        }
+    }
+
+    @Nested
     @DisplayName("logout Tests")
     class LogoutTests {
 
@@ -84,6 +151,55 @@ class AnagraficaControllerTest {
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             verify(anagraficaService).logout();
+        }
+    }
+
+    @Nested
+    @DisplayName("logoutWithRedirect Tests")
+    class LogoutWithRedirectTests {
+
+        @Test
+        @DisplayName("Dovrebbe restituire 303 con redirect URL configurata")
+        void shouldReturn303WithConfiguredUrl() {
+            when(anagraficaService.getLogoutRedirectUrl("portale"))
+                    .thenReturn(Optional.of("http://localhost:3000/logged-out"));
+            doNothing().when(anagraficaService).logout();
+            when(request.getParameterMap()).thenReturn(new HashMap<>());
+
+            ResponseEntity<Void> response = anagraficaController.logoutWithRedirect("portale");
+
+            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
+            assertNotNull(response.getHeaders().getLocation());
+            assertEquals("http://localhost:3000/logged-out",
+                    response.getHeaders().getLocation().toString());
+            verify(anagraficaService).logout();
+        }
+
+        @Test
+        @DisplayName("Dovrebbe inoltrare i query parameter alla redirect URL")
+        void shouldForwardQueryParams() {
+            when(anagraficaService.getLogoutRedirectUrl("portale"))
+                    .thenReturn(Optional.of("http://localhost:3000/logged-out"));
+            doNothing().when(anagraficaService).logout();
+            HashMap<String, String[]> params = new HashMap<>();
+            params.put("idp", new String[]{"spid"});
+            when(request.getParameterMap()).thenReturn(params);
+
+            ResponseEntity<Void> response = anagraficaController.logoutWithRedirect("portale");
+
+            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
+            assertTrue(response.getHeaders().getLocation().toString()
+                    .contains("idp=spid"));
+        }
+
+        @Test
+        @DisplayName("Dovrebbe lanciare NotFoundException per urlID non configurato")
+        void shouldThrowNotFoundForUnknownUrlId() {
+            when(anagraficaService.getLogoutRedirectUrl("sconosciuto"))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> anagraficaController.logoutWithRedirect("sconosciuto"));
         }
     }
 

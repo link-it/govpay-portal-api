@@ -66,15 +66,18 @@ Il sistema si integra con GovPay come backend per la gestione dei pagamenti pago
 
 ### Anagrafica
 
-| Metodo | Endpoint | Descrizione |
-|--------|----------|-------------|
-| `GET` | `/profilo` | Ottiene il profilo dell'utente autenticato |
-| `POST` | `/logout` | Effettua il logout dell'utente |
-| `GET` | `/domini` | Lista dei domini (enti creditori) disponibili |
-| `GET` | `/domini/{idDominio}` | Dettaglio di un dominio |
-| `GET` | `/domini/{idDominio}/logo` | Logo del dominio |
-| `GET` | `/domini/{idDominio}/tipiPendenza` | Tipi di pendenza disponibili per il dominio |
-| `GET` | `/domini/{idDominio}/tipiPendenza/{idTipoPendenza}` | Dettaglio tipo pendenza con form |
+| Metodo | Endpoint | Auth | Descrizione |
+|--------|----------|------|-------------|
+| `GET` | `/login` | SPID | Crea la sessione e restituisce il profilo utente |
+| `GET` | `/login/{urlID}` | SPID | Crea la sessione e redirige verso una URL configurata |
+| `GET` | `/profilo` | SPID | Ottiene il profilo dell'utente autenticato |
+| `GET` | `/logout` | SPID | Effettua il logout dell'utente |
+| `GET` | `/logout/{urlID}` | SPID | Effettua il logout e redirige verso una URL configurata |
+| `GET` | `/domini` | Public | Lista dei domini (enti creditori) disponibili |
+| `GET` | `/domini/{idDominio}` | Public | Dettaglio di un dominio |
+| `GET` | `/domini/{idDominio}/logo` | Public | Logo del dominio |
+| `GET` | `/domini/{idDominio}/tipiPendenza` | Public | Tipi di pendenza disponibili per il dominio |
+| `GET` | `/domini/{idDominio}/tipiPendenza/{idTipoPendenza}` | Public | Dettaglio tipo pendenza con form |
 
 ### Pendenze
 
@@ -130,10 +133,38 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 ### Sicurezza SPID
 
 ```properties
-# Configurazione autenticazione SPID
-# I dettagli dipendono dalla configurazione del reverse proxy
-# che gestisce l'autenticazione SPID e passa gli header
+# Nomi degli header HTTP inoltrati dal reverse proxy (valori di default mostrati)
+govpay.security.spid-headers.fiscal-number=X-SPID-FISCALNUMBER
+govpay.security.spid-headers.name=X-SPID-NAME
+govpay.security.spid-headers.family-name=X-SPID-FAMILYNAME
+govpay.security.spid-headers.email=X-SPID-EMAIL
+govpay.security.spid-headers.mobile-phone=X-SPID-MOBILEPHONE
+govpay.security.spid-headers.address=X-SPID-ADDRESS
 ```
+
+### Login e Logout con Redirect
+
+Al termine del flusso SPID, il reverse proxy redirige il browser verso l'endpoint
+`/login/{urlID}` della Portal API. L'applicazione crea la sessione autenticata e
+redirige il browser verso la URL associata all'`urlID` configurato. Lo stesso
+meccanismo e' disponibile per il logout.
+
+```properties
+# URL di redirect dopo il login (mappa urlID -> URL)
+govpay.security.login-redirect-urls.portale=https://portal.example.com/dashboard
+govpay.security.login-redirect-urls.app=https://app.example.com/home
+
+# URL di redirect dopo il logout (mappa urlID -> URL)
+govpay.security.logout-redirect-urls.portale=https://portal.example.com/logged-out
+govpay.security.logout-redirect-urls.app=https://app.example.com/goodbye
+```
+
+I query parameter della richiesta originale vengono inoltrati alla URL di redirect.
+Ad esempio, `GET /login/portale?lang=it` redirige verso
+`https://portal.example.com/dashboard?lang=it`.
+
+Solo le URL presenti nella whitelist sono ammesse; un `urlID` non configurato
+restituisce `404 Not Found`.
 
 ### Google reCAPTCHA
 

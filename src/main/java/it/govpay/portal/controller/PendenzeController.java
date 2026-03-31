@@ -245,7 +245,7 @@ public class PendenzeController {
         try {
             ResponseEntity<Pendenza> response = pendenzeService.getPendenza(idDominio, numeroAvviso)
                     .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
