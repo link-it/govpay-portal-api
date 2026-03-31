@@ -1,5 +1,8 @@
 package it.govpay.portal.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class SecurityProperties {
 
     private SpidHeaders spidHeaders = new SpidHeaders();
+    private Map<String, String> loginRedirectUrls = new HashMap<>();
+    private Map<String, String> logoutRedirectUrls = new HashMap<>();
 
     public SpidHeaders getSpidHeaders() {
         return spidHeaders;
@@ -15,6 +20,22 @@ public class SecurityProperties {
 
     public void setSpidHeaders(SpidHeaders spidHeaders) {
         this.spidHeaders = spidHeaders;
+    }
+
+    public Map<String, String> getLoginRedirectUrls() {
+        return loginRedirectUrls;
+    }
+
+    public void setLoginRedirectUrls(Map<String, String> loginRedirectUrls) {
+        this.loginRedirectUrls = loginRedirectUrls;
+    }
+
+    public Map<String, String> getLogoutRedirectUrls() {
+        return logoutRedirectUrls;
+    }
+
+    public void setLogoutRedirectUrls(Map<String, String> logoutRedirectUrls) {
+        this.logoutRedirectUrls = logoutRedirectUrls;
     }
 
     public static class SpidHeaders {

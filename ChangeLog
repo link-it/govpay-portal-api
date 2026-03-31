@@ -1,3 +1,32 @@
+2026-03-31  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.9.
+
+	* [API]
+	Aggiunti endpoint di login e logout con supporto redirect:
+	- GET /login: crea la sessione e restituisce il profilo utente.
+	- GET /login/{urlID}: crea la sessione e redirige verso una URL
+	  preconfigurata, inoltrando i query parameter della richiesta originale.
+	- GET /logout/{urlID}: effettua il logout e redirige verso una URL
+	  preconfigurata, inoltrando i query parameter della richiesta originale.
+	Le URL di redirect sono configurabili tramite le property
+	govpay.security.login-redirect-urls.<urlID> e
+	govpay.security.logout-redirect-urls.<urlID>. Solo le URL presenti
+	nella whitelist sono ammesse (protezione open redirect).
+
+	* [GDE]
+	Aggiunto campo sottotipoEvento (codice fiscale) negli eventi GDE per
+	le operazioni getProfilo, logout e logoutWithRedirect, rendendo
+	l'identita' dell'utente un campo di primo livello negli eventi.
+	Aggiunto tracciamento dei fallimenti di autenticazione (403) nel GDE
+	per gli endpoint protetti /profilo e /logout.
+
+	* [Test]
+	Aggiunti test unitari per login, loginWithRedirect e logoutWithRedirect
+	nel controller (9 test) e test di integrazione security per verifica
+	accesso autenticato/anonimo e redirect (8 test).
+
 2026-03-25  Giuliano Pintori <pintori@link.it>
 
 	* [Build]

@@ -35,6 +35,53 @@ class SecurityConfigTest {
     class ProtectedEndpointsTests {
 
         @Test
+        @DisplayName("GET /login senza autenticazione dovrebbe restituire 403")
+        void getLoginWithoutAuthShouldReturn403() throws Exception {
+            mockMvc.perform(get("/login")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("GET /login con autenticazione SPID dovrebbe restituire 200")
+        void getLoginWithSpidAuthShouldReturn200() throws Exception {
+            mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .header(SPID_NAME, "Mario")
+                            .header(SPID_FAMILY_NAME, "Rossi")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("GET /login/{urlID} senza autenticazione dovrebbe restituire 403")
+        void getLoginWithRedirectWithoutAuthShouldReturn403() throws Exception {
+            mockMvc.perform(get("/login/portale")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("GET /login/{urlID} con autenticazione SPID dovrebbe restituire 303")
+        void getLoginWithRedirectWithSpidAuthShouldReturn303() throws Exception {
+            mockMvc.perform(get("/login/portale")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .header(SPID_NAME, "Mario")
+                            .header(SPID_FAMILY_NAME, "Rossi")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().is3xxRedirection());
+        }
+
+        @Test
+        @DisplayName("GET /login/{urlID} con urlID non configurato dovrebbe restituire 404")
+        void getLoginWithRedirectUnknownUrlIdShouldReturn404() throws Exception {
+            mockMvc.perform(get("/login/sconosciuto")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
         @DisplayName("GET /profilo senza autenticazione dovrebbe restituire 403")
         void getProfiloWithoutAuthShouldReturn403() throws Exception {
             mockMvc.perform(get("/profilo")
@@ -60,6 +107,31 @@ class SecurityConfigTest {
             // Con CSRF abilitato, GET /logout richiede autenticazione
             mockMvc.perform(get("/logout"))
                     .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} senza autenticazione dovrebbe restituire 403")
+        void getLogoutWithRedirectWithoutAuthShouldReturn403() throws Exception {
+            mockMvc.perform(get("/logout/portale"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} con autenticazione SPID dovrebbe restituire 303")
+        void getLogoutWithRedirectWithSpidAuthShouldReturn303() throws Exception {
+            mockMvc.perform(get("/logout/portale")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .header(SPID_NAME, "Mario")
+                            .header(SPID_FAMILY_NAME, "Rossi"))
+                    .andExpect(status().is3xxRedirection());
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} con urlID non configurato dovrebbe restituire 404")
+        void getLogoutWithRedirectUnknownUrlIdShouldReturn404() throws Exception {
+            mockMvc.perform(get("/logout/sconosciuto")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U"))
+                    .andExpect(status().isNotFound());
         }
 
         @Test

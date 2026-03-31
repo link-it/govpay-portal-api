@@ -54,14 +54,29 @@ public class EventoPortalMapper {
 
     public NuovoEvento createEventoOk(String tipoEvento, String transactionId,
                                        OffsetDateTime dataStart, OffsetDateTime dataEnd) {
+        return createEventoOk(tipoEvento, transactionId, dataStart, dataEnd, null);
+    }
+
+    public NuovoEvento createEventoOk(String tipoEvento, String transactionId,
+                                       OffsetDateTime dataStart, OffsetDateTime dataEnd,
+                                       String sottotipoEvento) {
         NuovoEvento nuovoEvento = createEvento(tipoEvento, transactionId, dataStart, dataEnd);
         nuovoEvento.setEsito(EsitoEvento.OK);
+        if (sottotipoEvento != null) {
+            nuovoEvento.setSottotipoEvento(sottotipoEvento);
+        }
         return nuovoEvento;
     }
 
     public NuovoEvento createEventoKo(String tipoEvento, String transactionId,
                                        OffsetDateTime dataStart, OffsetDateTime dataEnd,
                                        int statusCode, Exception exception) {
+        return createEventoKo(tipoEvento, transactionId, dataStart, dataEnd, statusCode, exception, null);
+    }
+
+    public NuovoEvento createEventoKo(String tipoEvento, String transactionId,
+                                       OffsetDateTime dataStart, OffsetDateTime dataEnd,
+                                       int statusCode, Exception exception, String sottotipoEvento) {
         NuovoEvento nuovoEvento = createEvento(tipoEvento, transactionId, dataStart, dataEnd);
 
         if (statusCode >= 500) {
@@ -73,6 +88,9 @@ public class EventoPortalMapper {
         nuovoEvento.setSottotipoEsito(String.valueOf(statusCode));
         if (exception != null) {
             nuovoEvento.setDettaglioEsito(exception.getMessage());
+        }
+        if (sottotipoEvento != null) {
+            nuovoEvento.setSottotipoEvento(sottotipoEvento);
         }
 
         return nuovoEvento;

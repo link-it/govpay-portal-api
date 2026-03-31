@@ -53,6 +53,71 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /login:
+    get:
+      tags:
+        - Anagrafica
+      summary: Login utente
+      description: |
+        Effettua il login dell'utente autenticato tramite SPID.
+        Crea la sessione HTTP e restituisce il profilo utente.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: login
+      security:
+        - spidFiscalNumber: []
+      responses:
+        '200':
+          description: Login effettuato, profilo utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profilo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  '/login/{urlID}':
+    get:
+      tags:
+        - Anagrafica
+      summary: Login con redirect
+      description: |
+        Effettua il login e redirige verso una URL configurata.
+        Il parametro urlID identifica una URL di redirect preconfigurata.
+        I query parameter della richiesta originale vengono inoltrati alla URL di redirect.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: loginWithRedirect
+      security:
+        - spidFiscalNumber: []
+      parameters:
+        - name: urlID
+          in: path
+          required: true
+          description: Identificativo della URL di redirect configurata
+          schema:
+            type: string
+      responses:
+        '303':
+          description: Redirect verso la URL configurata
+          headers:
+            Location:
+              description: URL di redirect
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   '/logout':
     get:
       summary: Logout
@@ -72,6 +137,44 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  '/logout/{urlID}':
+    get:
+      tags:
+        - Anagrafica
+      summary: Logout con redirect
+      description: |
+        Effettua il logout dell'utente autenticato e redirige verso una URL configurata.
+        Il parametro urlID identifica una URL di redirect preconfigurata.
+        I query parameter della richiesta originale vengono inoltrati alla URL di redirect.
+
+        **Disponibilità**: Solo API Autenticata (SPID)
+      operationId: logoutWithRedirect
+      security:
+        - spidFiscalNumber: []
+      parameters:
+        - name: urlID
+          in: path
+          required: true
+          description: Identificativo della URL di redirect configurata
+          schema:
+            type: string
+      responses:
+        '303':
+          description: Redirect verso la URL configurata
+          headers:
+            Location:
+              description: URL di redirect
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
