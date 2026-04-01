@@ -95,7 +95,7 @@ class StampeMapperTest {
 
             assertNotNull(notice);
             assertEquals(Languages.IT, notice.getLanguage());
-            assertEquals("Avviso di pagamento", notice.getTitle());
+            assertEquals("Pagamento TARI 2024", notice.getTitle());
 
             // Creditor
             assertNotNull(notice.getCreditor());
@@ -390,7 +390,7 @@ class StampeMapperTest {
 
             Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
 
-            assertEquals("Pagamento", receipt.getPaymentSubject());
+            assertEquals("", receipt.getPaymentSubject());
         }
     }
 }

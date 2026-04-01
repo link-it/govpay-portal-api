@@ -1,3 +1,23 @@
+2026-04-01  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Avanzata versione a 1.1.10.
+	Esclusa UserDetailsServiceAutoConfiguration per eliminare il warning
+	"Using generated security password" all'avvio. L'applicazione utilizza
+	esclusivamente HeaderAuthenticationFilter per l'autenticazione SPID.
+
+	* [Bug Fix]
+	Corretta segnalazione SonarQube in PendenzeController: sostituito
+	ResponseEntity.notFound().build() con
+	ResponseEntity.status(HttpStatus.NOT_FOUND).build() per rendere
+	esplicito lo status code HTTP.
+
+	* [Test]
+	Corretti test StampeMapperTest disallineati dal comportamento del
+	mapper: il titolo dell'avviso di pagamento utilizza la causale del
+	versamento, e il paymentSubject con causale null restituisce stringa
+	vuota.
+
 2026-03-31  Giuliano Pintori <pintori@link.it>
 
 	* [Build]

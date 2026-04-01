@@ -54,7 +54,7 @@ public class StampeMapper {
 
         // Lingua principale
         notice.setLanguage(Languages.IT);
-        notice.setTitle("Avviso di pagamento");
+        notice.setTitle(getCausale(versamento));
 
         // Lingua secondaria (se richiesta)
         if (linguaSecondaria != null) {
@@ -138,7 +138,7 @@ public class StampeMapper {
 
         // Causale
         String causale = getCausale(versamento);
-        receipt.setPaymentSubject(causale != null ? causale : "Pagamento");
+        receipt.setPaymentSubject(causale != null ? causale : "");
 
         // Organizzazione creditore
         ReceiptOrganization organization = new ReceiptOrganization();
@@ -233,7 +233,7 @@ public class StampeMapper {
 
     private String getCausale(Versamento versamento) {
         if (versamento.getCausaleVersamento() == null) {
-            return null;
+            return "";
         }
         return CausaleUtils.getSimple(versamento.getCausaleVersamento());
     }
