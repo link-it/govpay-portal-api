@@ -16,11 +16,16 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -89,6 +94,33 @@ public class SecurityConfig {
                 configurazioneService, versamentoRepository);
     }
 
+    /**
+     * LogoutFilter custom che intercetta GET /logout e GET /logout/{urlID}.
+     * Replica il comportamento della configurazione XML di api-user:
+     * - SecurityContextLogoutHandler: pulisce SecurityContext e invalida la sessione
+     * - CookieClearingLogoutHandler: rimuove il cookie JSESSIONID
+     * - PortalLogoutSuccessHandler: gestisce la risposta (200 o 303 redirect)
+     */
+    @Bean
+    public LogoutFilter portalLogoutFilter() {
+        SecurityContextLogoutHandler securityContextHandler = new SecurityContextLogoutHandler();
+        securityContextHandler.setInvalidateHttpSession(true);
+        securityContextHandler.setClearAuthentication(true);
+
+        CookieClearingLogoutHandler cookieHandler = new CookieClearingLogoutHandler("JSESSIONID");
+
+        PortalLogoutSuccessHandler successHandler = new PortalLogoutSuccessHandler(securityProperties, gdeService);
+
+        LogoutFilter logoutFilter = new LogoutFilter(successHandler, securityContextHandler, cookieHandler);
+        logoutFilter.setFilterProcessesUrl("/logout");
+        logoutFilter.setLogoutRequestMatcher(new OrRequestMatcher(
+                new AntPathRequestMatcher("/logout", "GET"),
+                new AntPathRequestMatcher("/logout/**", "GET")
+        ));
+
+        return logoutFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // CSRF token repository che salva il token in un cookie leggibile da JavaScript.
@@ -112,7 +144,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .sessionFixation().changeSessionId()
-                .maximumSessions(2))
+                .invalidSessionStrategy(new NotAuthorizedInvalidSessionStrategy())
+                .maximumSessions(2)
+                .expiredSessionStrategy(new NotAuthorizedSessionInformationExpiredStrategy()))
             .addFilterBefore(headerAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 // ==========================================
@@ -123,9 +157,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/login/{urlID}").authenticated()
                 // Profilo utente
                 .requestMatchers(HttpMethod.GET, "/profilo").authenticated()
-                // Logout
-                .requestMatchers(HttpMethod.GET, "/logout").authenticated()
-                .requestMatchers(HttpMethod.GET, "/logout/{urlID}").authenticated()
+                // Logout: gestito dal LogoutFilter (non raggiunge l'authorization filter)
                 // Elenco pendenze utente
                 .requestMatchers(HttpMethod.GET, "/pendenze/{idDominio}").authenticated()
                 // Dettaglio pendenza
@@ -169,11 +201,8 @@ public class SecurityConfig {
                 .frameOptions(fo -> fo.sameOrigin())
                 .xssProtection(XXssConfig::disable)
             )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true)
-            )
+            .logout(logout -> logout.disable())
+            .addFilterAfter(portalLogoutFilter(), LogoutFilter.class)
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
                     tracciaFallimentoAutenticazione(request, authException);

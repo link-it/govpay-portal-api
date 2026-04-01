@@ -109,56 +109,8 @@ public class AnagraficaController implements AnagraficaApi {
         }
     }
 
-    @Override
-    public ResponseEntity<Void> logout() {
-        OffsetDateTime startTime = OffsetDateTime.now();
-        String principal = getPrincipalName();
-
-        try {
-            anagraficaService.logout();
-            gdeService.saveEventOk(Costanti.OP_LOGOUT, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), null, null, null, principal);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_LOGOUT, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, null, null, principal);
-            throw e;
-        }
-    }
-
-    @Override
-    public ResponseEntity<Void> logoutWithRedirect(String urlID) {
-        OffsetDateTime startTime = OffsetDateTime.now();
-        String principal = getPrincipalName();
-
-        try {
-            Optional<String> redirectUrl = anagraficaService.getLogoutRedirectUrl(urlID);
-
-            if (redirectUrl.isEmpty()) {
-                throw new NotFoundException("URL-ID non registrato: " + urlID);
-            }
-
-            anagraficaService.logout();
-
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUrl.get());
-            request.getParameterMap().forEach((key, values) -> {
-                for (String value : values) {
-                    builder.queryParam(key, value);
-                }
-            });
-            URI location = builder.build().toUri();
-
-            gdeService.saveEventOk(Costanti.OP_LOGOUT, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.SEE_OTHER.value(), null, null, null, principal);
-            return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                    .location(location)
-                    .build();
-        } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_LOGOUT, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, null, null, principal);
-            throw e;
-        }
-    }
+    // GET /logout e GET /logout/{urlID} sono gestiti dal LogoutFilter di Spring Security
+    // (configurato in SecurityConfig.portalLogoutFilter) e non raggiungono il controller.
 
     @Override
     public ResponseEntity<ListaDomini> findDomini() {

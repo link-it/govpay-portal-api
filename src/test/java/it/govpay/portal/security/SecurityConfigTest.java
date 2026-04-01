@@ -1,5 +1,6 @@
 package it.govpay.portal.security;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -11,8 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import jakarta.servlet.http.Cookie;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -102,18 +107,19 @@ class SecurityConfigTest {
         }
 
         @Test
-        @DisplayName("GET /logout senza CSRF dovrebbe restituire 403")
-        void getLogoutWithoutCsrfShouldReturn403() throws Exception {
-            // Con CSRF abilitato, GET /logout richiede autenticazione
+        @DisplayName("GET /logout senza autenticazione dovrebbe restituire 200 (LogoutFilter intercetta)")
+        void getLogoutWithoutAuthShouldReturn200() throws Exception {
+            // Il LogoutFilter intercetta GET /logout prima dell'authorization filter
+            // e restituisce 200 anche senza sessione attiva (come nella config XML)
             mockMvc.perform(get("/logout"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk());
         }
 
         @Test
-        @DisplayName("GET /logout/{urlID} senza autenticazione dovrebbe restituire 403")
-        void getLogoutWithRedirectWithoutAuthShouldReturn403() throws Exception {
+        @DisplayName("GET /logout/{urlID} senza autenticazione dovrebbe restituire 303 (LogoutFilter intercetta)")
+        void getLogoutWithRedirectWithoutAuthShouldReturn303() throws Exception {
             mockMvc.perform(get("/logout/portale"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().is3xxRedirection());
         }
 
         @Test
@@ -132,14 +138,6 @@ class SecurityConfigTest {
             mockMvc.perform(get("/logout/sconosciuto")
                             .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U"))
                     .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("POST /logout con CSRF dovrebbe restituire redirect")
-        void postLogoutWithCsrfShouldReturnRedirect() throws Exception {
-            mockMvc.perform(post("/logout")
-                            .with(csrf()))
-                    .andExpect(status().is3xxRedirection());
         }
 
         @Test
@@ -325,6 +323,168 @@ class SecurityConfigTest {
             // Con header fiscal number vuoto l'utente risulta anonimo e riceve 403 Forbidden
             mockMvc.perform(get("/profilo")
                             .header(SPID_FISCAL_NUMBER, "")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("LogoutFilter - invalidazione sessione e cookie")
+    class LogoutFilterTests {
+
+        @Test
+        @DisplayName("GET /logout dovrebbe invalidare la sessione HTTP")
+        void logoutShouldInvalidateSession() throws Exception {
+            // 1. Login: crea sessione autenticata
+            MvcResult loginResult = mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .header(SPID_NAME, "Mario")
+                            .header(SPID_FAMILY_NAME, "Rossi")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+            assertNotNull(session, "La sessione dovrebbe esistere dopo il login");
+
+            // 2. Logout: invalida la sessione
+            mockMvc.perform(get("/logout")
+                            .session(session))
+                    .andExpect(status().isOk());
+
+            assertTrue(session.isInvalid(), "La sessione dovrebbe essere invalidata dopo il logout");
+        }
+
+        @Test
+        @DisplayName("GET /logout dovrebbe rimuovere il cookie JSESSIONID")
+        void logoutShouldClearJSessionIdCookie() throws Exception {
+            // 1. Login
+            MvcResult loginResult = mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+
+            // 2. Logout
+            MvcResult logoutResult = mockMvc.perform(get("/logout")
+                            .session(session))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            // Verifica che il cookie JSESSIONID sia stato rimosso (maxAge=0)
+            Cookie[] cookies = logoutResult.getResponse().getCookies();
+            boolean jsessionIdCleared = false;
+            for (Cookie cookie : cookies) {
+                if ("JSESSIONID".equals(cookie.getName())) {
+                    assertEquals(0, cookie.getMaxAge(),
+                            "Il cookie JSESSIONID dovrebbe avere maxAge=0 (rimosso)");
+                    jsessionIdCleared = true;
+                }
+            }
+            assertTrue(jsessionIdCleared, "Il cookie JSESSIONID dovrebbe essere presente nella risposta con maxAge=0");
+        }
+
+        @Test
+        @DisplayName("GET /logout dovrebbe pulire il SecurityContext")
+        void logoutShouldClearSecurityContext() throws Exception {
+            // 1. Login
+            MvcResult loginResult = mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+
+            // 2. Logout
+            mockMvc.perform(get("/logout")
+                            .session(session))
+                    .andExpect(status().isOk());
+
+            // 3. Accesso a endpoint protetto con la stessa sessione (invalidata) dovrebbe fallire
+            mockMvc.perform(get("/profilo")
+                            .session(session)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} dovrebbe invalidare la sessione e fare redirect")
+        void logoutWithRedirectShouldInvalidateSessionAndRedirect() throws Exception {
+            // 1. Login
+            MvcResult loginResult = mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+            assertNotNull(session);
+
+            // 2. Logout con redirect
+            MvcResult logoutResult = mockMvc.perform(get("/logout/portale")
+                            .session(session))
+                    .andExpect(status().is3xxRedirection())
+                    .andReturn();
+
+            assertTrue(session.isInvalid(), "La sessione dovrebbe essere invalidata dopo il logout");
+            String location = logoutResult.getResponse().getHeader("Location");
+            assertNotNull(location);
+            assertTrue(location.startsWith("http://localhost:3000/logged-out"),
+                    "Dovrebbe fare redirect verso la URL configurata");
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} dovrebbe inoltrare i query parameter")
+        void logoutWithRedirectShouldForwardQueryParams() throws Exception {
+            MvcResult result = mockMvc.perform(get("/logout/portale")
+                            .param("idp", "spid")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U"))
+                    .andExpect(status().is3xxRedirection())
+                    .andReturn();
+
+            String location = result.getResponse().getHeader("Location");
+            assertNotNull(location);
+            assertTrue(location.contains("idp=spid"),
+                    "I query parameter dovrebbero essere inoltrati alla redirect URL");
+        }
+
+        @Test
+        @DisplayName("GET /logout/{urlID} con urlID non configurato dovrebbe restituire 404 JSON")
+        void logoutWithRedirectUnknownUrlIdShouldReturn404Json() throws Exception {
+            mockMvc.perform(get("/logout/sconosciuto")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.categoria").value("RICHIESTA"))
+                    .andExpect(jsonPath("$.codice").value("404"))
+                    .andExpect(jsonPath("$.descrizione").value("URL-ID non registrato"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Gestione sessioni invalide e scadute")
+    class SessionStrategyTests {
+
+        @Test
+        @DisplayName("Sessione invalidata dovrebbe restituire 403 JSON con messaggio sessione scaduta")
+        void invalidSessionShouldReturn403WithExpiredMessage() throws Exception {
+            // Crea una sessione e la invalida manualmente
+            MvcResult loginResult = mockMvc.perform(get("/login")
+                            .header(SPID_FISCAL_NUMBER, "RSSMRA80A01H501U")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+            assertNotNull(session);
+            session.invalidate();
+
+            // Richiesta con sessione invalidata verso endpoint protetto
+            mockMvc.perform(get("/profilo")
+                            .session(session)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isForbidden());
         }

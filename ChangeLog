@@ -1,6 +1,33 @@
 2026-04-01  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
+	Avanzata versione a 1.1.11.
+
+	* [Sicurezza]
+	Reimplementato logout tramite LogoutFilter di Spring Security,
+	allineando la configurazione a quella XML di api-user:
+	- SecurityContextLogoutHandler: pulisce SecurityContext e invalida
+	  la sessione HTTP.
+	- CookieClearingLogoutHandler: rimuove il cookie JSESSIONID.
+	- PortalLogoutSuccessHandler: gestisce la risposta (200 per /logout,
+	  303 redirect per /logout/{urlID}).
+	Il LogoutFilter intercetta le richieste GET /logout e GET /logout/**
+	prima dell'authorization filter, come nella configurazione originale.
+	Aggiunta gestione sessioni invalide e scadute:
+	- NotAuthorizedInvalidSessionStrategy: restituisce 403 JSON
+	  "Sessione scaduta" per sessioni invalide.
+	- NotAuthorizedSessionInformationExpiredStrategy: restituisce 403 JSON
+	  per sessioni scadute per superamento del limite di concorrenza.
+
+	* [Test]
+	Aggiunti test di integrazione per il LogoutFilter: verifica
+	invalidazione sessione, rimozione cookie JSESSIONID, pulizia
+	SecurityContext, redirect con forwarding query parameter, e gestione
+	urlID non configurato. Aggiunto test per sessioni invalidate.
+
+2026-04-01  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
 	Avanzata versione a 1.1.10.
 	Esclusa UserDetailsServiceAutoConfiguration per eliminare il warning
 	"Using generated security password" all'avvio. L'applicazione utilizza

@@ -138,70 +138,8 @@ class AnagraficaControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("logout Tests")
-    class LogoutTests {
-
-        @Test
-        @DisplayName("Dovrebbe restituire 200 per logout")
-        void shouldReturn200ForLogout() {
-            doNothing().when(anagraficaService).logout();
-
-            ResponseEntity<Void> response = anagraficaController.logout();
-
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            verify(anagraficaService).logout();
-        }
-    }
-
-    @Nested
-    @DisplayName("logoutWithRedirect Tests")
-    class LogoutWithRedirectTests {
-
-        @Test
-        @DisplayName("Dovrebbe restituire 303 con redirect URL configurata")
-        void shouldReturn303WithConfiguredUrl() {
-            when(anagraficaService.getLogoutRedirectUrl("portale"))
-                    .thenReturn(Optional.of("http://localhost:3000/logged-out"));
-            doNothing().when(anagraficaService).logout();
-            when(request.getParameterMap()).thenReturn(new HashMap<>());
-
-            ResponseEntity<Void> response = anagraficaController.logoutWithRedirect("portale");
-
-            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
-            assertNotNull(response.getHeaders().getLocation());
-            assertEquals("http://localhost:3000/logged-out",
-                    response.getHeaders().getLocation().toString());
-            verify(anagraficaService).logout();
-        }
-
-        @Test
-        @DisplayName("Dovrebbe inoltrare i query parameter alla redirect URL")
-        void shouldForwardQueryParams() {
-            when(anagraficaService.getLogoutRedirectUrl("portale"))
-                    .thenReturn(Optional.of("http://localhost:3000/logged-out"));
-            doNothing().when(anagraficaService).logout();
-            HashMap<String, String[]> params = new HashMap<>();
-            params.put("idp", new String[]{"spid"});
-            when(request.getParameterMap()).thenReturn(params);
-
-            ResponseEntity<Void> response = anagraficaController.logoutWithRedirect("portale");
-
-            assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
-            assertTrue(response.getHeaders().getLocation().toString()
-                    .contains("idp=spid"));
-        }
-
-        @Test
-        @DisplayName("Dovrebbe lanciare NotFoundException per urlID non configurato")
-        void shouldThrowNotFoundForUnknownUrlId() {
-            when(anagraficaService.getLogoutRedirectUrl("sconosciuto"))
-                    .thenReturn(Optional.empty());
-
-            assertThrows(NotFoundException.class,
-                    () -> anagraficaController.logoutWithRedirect("sconosciuto"));
-        }
-    }
+    // Logout e LogoutWithRedirect sono gestiti dal LogoutFilter di Spring Security,
+    // non dal controller. I test sono in SecurityConfigTest.
 
     @Nested
     @DisplayName("getDomini Tests")

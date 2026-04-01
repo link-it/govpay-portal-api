@@ -77,15 +77,7 @@ public class AnagraficaService {
         return Optional.ofNullable(securityProperties.getLoginRedirectUrls().get(urlID));
     }
 
-    public void logout() {
-        // Verifica che l'utente sia autenticato prima di procedere con il logout
-        getAuthenticatedUser();
-    }
-
-    public Optional<String> getLogoutRedirectUrl(String urlID) {
-        getAuthenticatedUser();
-        return Optional.ofNullable(securityProperties.getLogoutRedirectUrls().get(urlID));
-    }
+    // Logout gestito dal LogoutFilter di Spring Security (SecurityConfig.portalLogoutFilter)
 
     public ListaDomini getDomini() {
         List<it.govpay.portal.entity.Dominio> entities = dominioRepository.findAll();
