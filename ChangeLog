@@ -1,3 +1,13 @@
+2026-04-20  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Aggiunto job osv-scan nella pipeline GitHub Actions
+	(.github/workflows/maven.yml) allineato a govpay-fdr-batch:
+	utilizza il reusable workflow google/osv-scanner-action@v2.3.5
+	per scansionare pom.xml. Viene eseguito solo su push verso main,
+	su tag o se vars.FORCE_OSV_JOB=='true'. Il job release dipende
+	ora anche da osv-scan.
+
 2026-04-01  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
