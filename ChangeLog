@@ -1,6 +1,11 @@
 2026-04-21  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
+	Aggiornato parent govpay-bom da 1.1.2 a 1.1.3-SNAPSHOT.
+
+2026-04-21  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
 	Migliorata la gestione della cache del DB OWASP Dependency-Check
 	nelle pipeline GitHub Actions, allineandosi a govpay-bom:
 	- La chiave di cache usa la data (YYYY-MM-DD) al posto di
