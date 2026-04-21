@@ -1,3 +1,18 @@
+2026-04-21  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Migliorata la gestione della cache del DB OWASP Dependency-Check
+	nelle pipeline GitHub Actions, allineandosi a govpay-bom:
+	- La chiave di cache usa la data (YYYY-MM-DD) al posto di
+	  github.sha, così la cache viene riutilizzata entro la giornata.
+	- In caso di cache-hit viene passato -DautoUpdate=false per
+	  evitare l'update del DB NVD quando già aggiornato.
+	- Aggiunto workflow refresh-owasp-db.yml che esegue l'update del
+	  DB NVD ogni notte alle 03:00 UTC (con avvio manuale), in modo
+	  da mantenere la cache sempre calda per la pipeline principale.
+	- Aggiornate actions/upload-artifact e actions/download-artifact
+	  da v6 a v7.
+
 2026-04-20  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
