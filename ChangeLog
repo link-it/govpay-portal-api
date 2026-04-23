@@ -1,3 +1,21 @@
+2026-04-23  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Unificati i report della GitHub Release in un unico ZIP
+	(release-reports-${tag}.zip), allineandosi a govpay-fdr-batch:
+	- Aggiunto results-file-name: osv-report.sarif al job osv-scan
+	  per produrre l'artifact SARIF.
+	- Il job release scarica anche l'artifact "OSV Scanner SARIF
+	  file" e assembla la struttura reports/owasp, reports/jacoco,
+	  reports/osv, reports/third-party-licenses.
+	- Aggiunto file ${tag}_actions_run.txt con il link al run della
+	  pipeline.
+	- Gli asset diretti della release sono ora solo WAR, JAR e lo ZIP
+	  aggregato dei report (rimossi i report singoli precedentemente
+	  pubblicati).
+	- Allineato matrix-property del job osv-scan a stringa vuota
+	  (era 'be-').
+
 2026-04-21  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
