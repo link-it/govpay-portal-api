@@ -265,7 +265,7 @@ class PendenzeControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST pendenze - Pagamento non abilitato restituisce 400")
+    @DisplayName("POST pendenze - Pagamento non abilitato restituisce 422")
     void testCreaPendenza_PagamentoNonAbilitato() throws Exception {
         // Given
         tipoVersamentoDominio.setPagAbilitato(false);
@@ -286,7 +286,7 @@ class PendenzeControllerIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
 
         // Verifica che NON sia stata fatta chiamata a GovPay
         verify(pendenzeApi, never()).addPendenza(anyString(), anyString(), anyBoolean(), any(), any());

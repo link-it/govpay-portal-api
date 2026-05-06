@@ -29,7 +29,6 @@ import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.TipoVersamento;
 import it.govpay.portal.entity.TipoVersamentoDominio;
-import it.govpay.portal.exception.BadRequestException;
 import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.exception.UnprocessableEntityException;
 import it.govpay.portal.exception.ValidationException;
@@ -177,7 +176,7 @@ class CreaPendenzaServiceTest {
                 .thenReturn(Optional.of(tipoVersamentoDominio));
 
         // When/Then
-        assertThrows(BadRequestException.class, () ->
+        assertThrows(UnprocessableEntityException.class, () ->
                 creaPendenzaService.creaPendenza(
                         idDominio,
                         idTipoPendenza,
