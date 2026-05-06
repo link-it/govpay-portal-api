@@ -214,6 +214,7 @@ class AnagraficaServiceTest {
                     .dominio(dominioEntity)
                     .tipoVersamento(tipoVersamento)
                     .abilitato(true)
+                    .pagAbilitato(true)
                     .pagFormDefinizione("formDef")
                     .pagFormTipo("formTipo")
                     .build();

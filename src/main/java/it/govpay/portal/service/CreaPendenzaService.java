@@ -102,7 +102,7 @@ public class CreaPendenzaService {
 
         // 2. Verifica che il pagamento spontaneo sia abilitato
         if (!Boolean.TRUE.equals(tipoVersamentoDominio.getPagAbilitato())) {
-            throw new BadRequestException(
+            throw new UnprocessableEntityException(
                     "Pagamento spontaneo non abilitato per tipo pendenza " + idTipoPendenza);
         }
 

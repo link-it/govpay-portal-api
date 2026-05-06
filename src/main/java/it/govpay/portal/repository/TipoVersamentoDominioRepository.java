@@ -19,6 +19,7 @@ public interface TipoVersamentoDominioRepository extends JpaRepository<TipoVersa
 
     @Query("SELECT tvd FROM TipoVersamentoDominio tvd JOIN FETCH tvd.tipoVersamento tv " +
            "WHERE tvd.dominio.id = :idDominio AND tvd.abilitato = :abilitato " +
+           "AND tvd.pagAbilitato = true " +
            "AND ((tvd.pagFormDefinizione IS NOT NULL AND tvd.pagFormTipo IS NOT NULL) " +
            "  OR (tv.pagFormDefinizione IS NOT NULL AND tv.pagFormTipo IS NOT NULL " +
            "      AND tvd.pagFormDefinizione IS NULL AND tvd.pagFormTipo IS NULL)) " +
