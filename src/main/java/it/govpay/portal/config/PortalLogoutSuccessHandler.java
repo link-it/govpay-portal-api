@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.gde.Costanti;
 import it.govpay.portal.gde.service.GdeService;
@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PortalLogoutSuccessHandler implements LogoutSuccessHandler {
+
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final SecurityProperties securityProperties;
     private final GdeService gdeService;
@@ -53,7 +55,7 @@ public class PortalLogoutSuccessHandler implements LogoutSuccessHandler {
             log.warn("Logout con urlID [{}] non configurato per l'utente [{}]", urlID, principal);
             response.setStatus(HttpStatus.NOT_FOUND.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+            OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
                     "categoria", "RICHIESTA",
                     "codice", "404",
                     "descrizione", "URL-ID non registrato",

@@ -271,7 +271,7 @@ class StampeMapperTest {
             assertEquals("CCP001", receipt.getReceiptId());
 
             // Version
-            assertEquals(ReceiptVersion._240, receipt.getObjectVersion());
+            assertEquals(ReceiptVersion.SANP_240, receipt.getObjectVersion());
 
             // Logos
             assertEquals("creditorLogoBase64", receipt.getCreditorLogo());
@@ -323,7 +323,7 @@ class StampeMapperTest {
         void shouldMapVersionSanp321V2() {
             rpt.setVersione("SANP_321_V2");
             Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
-            assertEquals(ReceiptVersion._240_V2, receipt.getObjectVersion());
+            assertEquals(ReceiptVersion.SANP_240_V2, receipt.getObjectVersion());
         }
 
         @Test
@@ -331,7 +331,7 @@ class StampeMapperTest {
         void shouldMapUnknownVersionAs230() {
             rpt.setVersione("UNKNOWN_VERSION");
             Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
-            assertEquals(ReceiptVersion._230, receipt.getObjectVersion());
+            assertEquals(ReceiptVersion.SANP_230, receipt.getObjectVersion());
         }
 
         @Test

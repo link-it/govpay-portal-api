@@ -24,11 +24,11 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.gde.Costanti;
 import it.govpay.portal.gde.service.GdeService;
@@ -45,6 +45,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
+
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final SecurityProperties securityProperties;
     private final ConfigurazioneService configurazioneService;
@@ -114,8 +116,8 @@ public class SecurityConfig {
         LogoutFilter logoutFilter = new LogoutFilter(successHandler, securityContextHandler, cookieHandler);
         logoutFilter.setFilterProcessesUrl("/logout");
         logoutFilter.setLogoutRequestMatcher(new OrRequestMatcher(
-                new AntPathRequestMatcher("/logout", "GET"),
-                new AntPathRequestMatcher("/logout/**", "GET")
+                PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout"),
+                PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout/**")
         ));
 
         return logoutFilter;
@@ -208,7 +210,7 @@ public class SecurityConfig {
                     tracciaFallimentoAutenticazione(request, authException);
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+                    OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
                             "categoria", "AUTORIZZAZIONE",
                             "codice", "403",
                             "descrizione", "Accesso negato",
@@ -219,7 +221,7 @@ public class SecurityConfig {
                     tracciaFallimentoAutenticazione(request, accessDeniedException);
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+                    OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
                             "categoria", "AUTORIZZAZIONE",
                             "codice", "403",
                             "descrizione", "Accesso negato",

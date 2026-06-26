@@ -2,8 +2,8 @@ package it.govpay.portal.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import it.govpay.portal.entity.TipoVersamentoDominio;
 import it.govpay.portal.model.Dominio;
@@ -125,7 +125,7 @@ public class AnagraficaMapper {
         }
         try {
             return objectMapper.readValue(json, Object.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return json;
         }
     }

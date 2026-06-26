@@ -8,18 +8,20 @@ import org.springframework.http.MediaType;
 import org.springframework.security.web.session.SessionInformationExpiredEvent;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 public class NotAuthorizedSessionInformationExpiredStrategy implements SessionInformationExpiredStrategy {
+
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     @Override
     public void onExpiredSessionDetected(SessionInformationExpiredEvent event) throws IOException {
         HttpServletResponse response = event.getResponse();
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+        OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
                 "categoria", "AUTORIZZAZIONE",
                 "codice", "AUTENTICAZIONE",
                 "descrizione", "Sessione scaduta",

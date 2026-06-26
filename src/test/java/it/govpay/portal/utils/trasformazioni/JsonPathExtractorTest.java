@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import it.govpay.portal.utils.trasformazioni.exception.JsonPathNotFoundException;
 import it.govpay.portal.utils.trasformazioni.exception.JsonPathNotValidException;

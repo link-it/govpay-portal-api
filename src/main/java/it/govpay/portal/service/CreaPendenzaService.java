@@ -16,8 +16,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import it.govpay.pendenze.client.api.PendenzeApi;
 import it.govpay.pendenze.client.model.NuovaPendenza;
@@ -110,7 +110,7 @@ public class CreaPendenzaService {
         String inputJson;
         try {
             inputJson = objectMapper.writeValueAsString(requestBody);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new BadRequestException("Errore nella serializzazione del body: " + e.getMessage());
         }
 
@@ -131,7 +131,7 @@ public class CreaPendenzaService {
         PendenzaPost pendenzaPost;
         try {
             pendenzaPost = objectMapper.readValue(trasformatoJson, PendenzaPost.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Errore nel parsing del JSON trasformato: {}", e.getMessage());
             throw new UnprocessableEntityException(
                     "Errore nel parsing del risultato della trasformazione: " + e.getMessage());
