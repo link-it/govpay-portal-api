@@ -20,7 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.pendenze.client.api.PendenzeApi;
 import it.govpay.pendenze.client.model.NuovaPendenza;
@@ -62,7 +63,7 @@ class CreaPendenzaServiceTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.builder().build();
         pendenzaPostMapper = new PendenzaPostMapper();
         creaPendenzaService = new CreaPendenzaService(
                 tipoVersamentoDominioRepository,

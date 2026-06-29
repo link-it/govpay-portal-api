@@ -7,13 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.pendenze.client.ApiClient;
 import it.govpay.pendenze.client.api.PendenzeApi;
@@ -47,22 +46,26 @@ public class GovPayClientConfig {
      * Crea un RestTemplate con ObjectMapper configurato per serializzare le date
      * come stringhe ISO-8601 invece che come array.
      */
+    @SuppressWarnings("removal")
     private RestTemplate createConfiguredRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
 
-        // Configura l'ObjectMapper
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setTimeZone(TimeZone.getTimeZone(timezone));
-        objectMapper.setDateFormat(new SimpleDateFormat(JacksonConfig.PATTERN_DATE_YYYY_MM_DD));
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-        objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        objectMapper.registerModule(new JavaTimeModule());
+        // Configura il JsonMapper (Jackson 3, immutabile: configurazione sul builder).
+        // Il supporto java.time e' nativo in Jackson 3, quindi non serve alcun modulo aggiuntivo.
+        JsonMapper jsonMapper = JsonMapper.builder()
+                .defaultDateFormat(new SimpleDateFormat(JacksonConfig.PATTERN_DATE_YYYY_MM_DD))
+                .defaultTimeZone(TimeZone.getTimeZone(timezone))
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
+                .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+                .build();
 
-        // Sostituisce il converter Jackson con uno configurato
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(objectMapper);
-        restTemplate.getMessageConverters().removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
-        restTemplate.getMessageConverters().add(0, converter);
+        // Sostituisce i converter Jackson con uno configurato (Jackson 3).
+        // Rimuove sia l'eventuale converter Jackson 2 sia quello Jackson 3 di default.
+        restTemplate.getMessageConverters().removeIf(
+                c -> c instanceof org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+                        || c instanceof JacksonJsonHttpMessageConverter);
+        restTemplate.getMessageConverters().add(0, new JacksonJsonHttpMessageConverter(jsonMapper));
 
         return restTemplate;
     }

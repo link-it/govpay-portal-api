@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import it.govpay.portal.security.hardening.ReCaptchaValidator;
@@ -23,16 +23,18 @@ public class HardeningRequestMatcher implements RequestMatcher {
 
     private static final Logger log = LoggerFactory.getLogger(HardeningRequestMatcher.class);
 
-    private final AntPathRequestMatcher pathMatcher;
+    private final PathPatternRequestMatcher pathMatcher;
     private final ConfigurazioneService configurazioneService;
 
     public HardeningRequestMatcher(String pattern, ConfigurazioneService configurazioneService) {
-        this.pathMatcher = new AntPathRequestMatcher(pattern);
+        this.pathMatcher = PathPatternRequestMatcher.pathPattern(pattern);
         this.configurazioneService = configurazioneService;
     }
 
     public HardeningRequestMatcher(String pattern, HttpMethod method, ConfigurazioneService configurazioneService) {
-        this.pathMatcher = new AntPathRequestMatcher(pattern, method != null ? method.name() : null);
+        this.pathMatcher = method != null
+                ? PathPatternRequestMatcher.pathPattern(method, pattern)
+                : PathPatternRequestMatcher.pathPattern(pattern);
         this.configurazioneService = configurazioneService;
     }
 
@@ -91,7 +93,7 @@ public class HardeningRequestMatcher implements RequestMatcher {
         }
     }
 
-    public AntPathRequestMatcher getPathMatcher() {
+    public PathPatternRequestMatcher getPathMatcher() {
         return pathMatcher;
     }
 

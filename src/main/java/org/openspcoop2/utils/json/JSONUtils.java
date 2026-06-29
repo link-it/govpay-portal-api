@@ -2,10 +2,11 @@ package org.openspcoop2.utils.json;
 
 import java.io.InputStream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Classe di compatibilità per i template FreeMarker esistenti.
@@ -21,7 +22,7 @@ public class JSONUtils {
 
     private JSONUtils(boolean prettyPrint) {
         this.prettyPrint = prettyPrint;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapper.builder().build();
     }
 
     public static JSONUtils getInstance() {

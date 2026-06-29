@@ -8,10 +8,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
@@ -31,7 +31,7 @@ public class JsonPathExtractor {
     private static final String DOCUMENT_IS_NULL = "Documento JSON è null";
     private static final String PATTERN_IS_NULL = "Pattern è null";
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper objectMapper = JsonMapper.builder().build();
 
     private final String jsonContent;
 
@@ -188,7 +188,7 @@ public class JsonPathExtractor {
         } else {
             try {
                 return objectMapper.writeValueAsString(o);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return o.toString();
             }
         }
@@ -197,7 +197,7 @@ public class JsonPathExtractor {
     private String mapToJsonString(Map<?, ?> map) throws TrasformazioneException {
         try {
             return objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new TrasformazioneException("Errore conversione Map a JSON: " + e.getMessage(), e);
         }
     }
@@ -205,12 +205,12 @@ public class JsonPathExtractor {
     private JsonNode convertToJsonNode(Object o) throws TrasformazioneException {
         try {
             if (o instanceof String s) {
-                return new TextNode(s);
+                return StringNode.valueOf(s);
             } else {
                 String json = objectMapper.writeValueAsString(o);
                 return objectMapper.readTree(json);
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new TrasformazioneException("Errore conversione a JsonNode: " + e.getMessage(), e);
         }
     }

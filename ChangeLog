@@ -1,3 +1,41 @@
+2026-06-26  Giuliano Pintori <pintori@link.it>
+
+	* [Build]
+	Migrazione a Spring Boot 4.1 / Spring Framework 7 / Jackson 3.
+	Avanzata versione a 2.0.0-SNAPSHOT su parent govpay-bom
+	2.0.0-SNAPSHOT (Spring Boot 4.1.0, Spring Framework 7.0.8,
+	Spring Data 2026.0.0, Hibernate 7, Jackson 3.1.4, springdoc
+	3.0.3). Aggiornato govpay-common a 2.0.0-SNAPSHOT. Rimossi gli
+	override di springdoc-openapi.version e swagger-annotations.version
+	(ora gestiti dal BOM) e di openapi.tool.codegen.version (ereditato
+	dal BOM a 7.23.0, compatibile con Spring 7). Aggiunte dipendenze
+	spring-boot-restclient (RestTemplateBuilder) e, per i test,
+	spring-boot-webmvc-test e spring-boot-data-jpa-test.
+
+	* [Refactor]
+	Jackson 2 -> Jackson 3 (tools.jackson): l'ObjectMapper è
+	immutabile e configurato via JsonMapperBuilderCustomizer
+	(JacksonConfig) invece che come bean @Primary; i mapper creati a
+	mano usano JsonMapper.builder(). Feature migrate a
+	EnumFeature/DateTimeFeature; JsonProcessingException ->
+	JacksonException; node TextNode -> StringNode. Il supporto
+	java.time è nativo in Jackson 3 (rimosso JavaTimeModule/jsr310).
+	Spring Framework 7 / Spring Security 7: AntPathRequestMatcher ->
+	PathPatternRequestMatcher; aggiornati i package relocati di Spring
+	Boot 4 (DataJpaRepositoriesAutoConfiguration,
+	UserDetailsServiceAutoConfiguration, RestTemplateBuilder).
+	Adeguato StampeMapper ai nuovi nomi delle costanti enum
+	ReceiptVersion (SANP_240, SANP_240_V2, SANP_230) generate dal
+	nuovo OpenAPI Generator.
+
+	* [Test]
+	Test allineati a Jackson 3 (JsonMapper, EnumFeature/DateTimeFeature)
+	e ai nuovi moduli di test slice di Spring Boot 4
+	(@AutoConfigureMockMvc, @DataJpaTest/TestEntityManager,
+	@MockBean -> @MockitoBean). SecurityConfigTest: la verifica di
+	accesso pubblico alla Swagger UI usa ora l'entry point canonico
+	/swagger-ui.html (redirect 3xx). Suite completa verde (687 test).
+
 2026-04-30  Giuliano Pintori <pintori@link.it>
 
 	* [Build]

@@ -7,12 +7,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class NotAuthorizedInvalidSessionStrategy implements InvalidSessionStrategy {
+
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private boolean createNewSession = false;
 
@@ -24,7 +26,7 @@ public class NotAuthorizedInvalidSessionStrategy implements InvalidSessionStrate
         }
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        new ObjectMapper().writeValue(response.getOutputStream(), Map.of(
+        OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
                 "categoria", "AUTORIZZAZIONE",
                 "codice", "AUTENTICAZIONE",
                 "descrizione", "Sessione scaduta",

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.entity.TipoVersamento;
 import it.govpay.portal.entity.TipoVersamentoDominio;
@@ -24,7 +24,7 @@ class AnagraficaMapperTest {
 
     @BeforeEach
     void setUp() {
-        mapper = new AnagraficaMapper(new ObjectMapper());
+        mapper = new AnagraficaMapper(JsonMapper.builder().build());
     }
 
     @Nested

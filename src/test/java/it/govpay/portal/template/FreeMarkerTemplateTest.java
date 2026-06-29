@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.openspcoop2.utils.json.JSONUtils;
 import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.utils.trasformazioni.TransformationContext;
 import it.govpay.portal.utils.trasformazioni.TrasformazioniUtils;
@@ -67,7 +68,7 @@ class FreeMarkerTemplateTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.builder().build();
     }
 
     @Test

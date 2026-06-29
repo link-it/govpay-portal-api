@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypesScanner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import it.govpay.common.client.config.GovPayClientAutoConfiguration;
 import it.govpay.common.client.service.ConnettoreService;

@@ -11,11 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.beans.pendenza.PendenzaPost;
 
@@ -29,19 +29,19 @@ class JacksonConfigTest {
 
     @BeforeEach
     void setUp() {
-        // Crea ObjectMapper con la stessa configurazione di JacksonConfig
-        objectMapper = new ObjectMapper();
-        objectMapper.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
-        objectMapper.setDateFormat(new SimpleDateFormat(JacksonConfig.PATTERN_DATE_YYYY_MM_DD));
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-        objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        objectMapper.registerModule(new JavaTimeModule());
+        // Crea il JsonMapper (Jackson 3) con la stessa configurazione di JacksonConfig
+        objectMapper = JsonMapper.builder()
+                .defaultTimeZone(TimeZone.getTimeZone("Europe/Rome"))
+                .defaultDateFormat(new SimpleDateFormat(JacksonConfig.PATTERN_DATE_YYYY_MM_DD))
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
+                .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+                .build();
     }
 
     @Test
     @DisplayName("Date serializzate come stringhe ISO-8601, non come array")
-    void testDateSerializedAsString() throws JsonProcessingException {
+    void testDateSerializedAsString() throws JacksonException {
         PendenzaPost pendenza = new PendenzaPost();
 
         // Crea una data: 31 gennaio 2027
@@ -66,7 +66,7 @@ class JacksonConfigTest {
 
     @Test
     @DisplayName("Date null serializzate come null")
-    void testNullDateSerialized() throws JsonProcessingException {
+    void testNullDateSerialized() throws JacksonException {
         PendenzaPost pendenza = new PendenzaPost();
         pendenza.setDataScadenza(null);
         pendenza.setIdDominio("01234567890");
@@ -79,7 +79,7 @@ class JacksonConfigTest {
 
     @Test
     @DisplayName("Deserializzazione date da stringa ISO-8601")
-    void testDateDeserialization() throws JsonProcessingException {
+    void testDateDeserialization() throws JacksonException {
         String json = "{\"dataScadenza\":\"2027-01-31\",\"idDominio\":\"01234567890\"}";
 
         PendenzaPost pendenza = objectMapper.readValue(json, PendenzaPost.class);
@@ -94,7 +94,7 @@ class JacksonConfigTest {
 
     @Test
     @DisplayName("Enum serializzati usando toString")
-    void testEnumSerializedAsString() throws JsonProcessingException {
+    void testEnumSerializedAsString() throws JacksonException {
         PendenzaPost pendenza = new PendenzaPost();
         pendenza.setIdDominio("01234567890");
         pendenza.setTassonomiaAvviso(it.govpay.portal.beans.pendenza.TassonomiaAvviso.SERVIZI_EROGATI_DAL_COMUNE);
