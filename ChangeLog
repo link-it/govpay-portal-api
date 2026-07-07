@@ -2,10 +2,10 @@
 
 	* [Build]
 	Migrazione a Spring Boot 4.1 / Spring Framework 7 / Jackson 3.
-	Avanzata versione a 2.0.0-SNAPSHOT su parent govpay-bom
-	2.0.0-SNAPSHOT (Spring Boot 4.1.0, Spring Framework 7.0.8,
+	Avanzata versione a 2.0.0 su parent govpay-bom
+	2.0.0 (Spring Boot 4.1.0, Spring Framework 7.0.8,
 	Spring Data 2026.0.0, Hibernate 7, Jackson 3.1.4, springdoc
-	3.0.3). Aggiornato govpay-common a 2.0.0-SNAPSHOT. Rimossi gli
+	3.0.3). Aggiornato govpay-common a 2.0.0. Rimossi gli
 	override di springdoc-openapi.version e swagger-annotations.version
 	(ora gestiti dal BOM) e di openapi.tool.codegen.version (ereditato
 	dal BOM a 7.23.0, compatibile con Spring 7). Aggiunte dipendenze

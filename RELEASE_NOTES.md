@@ -1,14 +1,14 @@
-# GovPay Portal API — 2.0.0-SNAPSHOT
+# GovPay Portal API — 2.0.0
 
 Migrazione dello stack a **Spring Boot 4.1 / Spring Framework 7 / Jackson 3**, in linea
-con il resto dell'ecosistema GovPay (`govpay-bom`, `govpay-common` e gli altri moduli
-`*-api` sono già a `2.0.0-SNAPSHOT`).
+con il resto dell'ecosistema GovPay (`govpay-bom` e `govpay-common` sono alla release
+`2.0.0`).
 
 ## Build / Dipendenze
 
-- Parent `govpay-bom` `1.1.4` → `2.0.0-SNAPSHOT` (Spring Boot `4.1.0`, Spring Framework
+- Parent `govpay-bom` `1.1.4` → `2.0.0` (Spring Boot `4.1.0`, Spring Framework
   `7.0.8`, Spring Data `2026.0.0`, Hibernate 7, Jackson `3.1.4`, springdoc `3.0.3`,
-  swagger-ui `5.32.6`). Versione progetto e `govpay-common` → `2.0.0-SNAPSHOT`.
+  swagger-ui `5.32.6`). Versione progetto e `govpay-common` → `2.0.0`.
 - Rimossi gli override ora gestiti dal BOM: `springdoc-openapi.version`,
   `swagger-annotations.version` e `openapi.tool.codegen.version` (ereditato a `7.23.0`,
   che genera client compatibili con Spring 7).
