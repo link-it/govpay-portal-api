@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClientException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import it.govpay.common.metrics.ExternalCallMetricsRecorder;
 import it.govpay.pendenze.client.api.PendenzeApi;
 import it.govpay.pendenze.client.model.NuovaPendenza;
 import it.govpay.pendenze.client.model.PendenzaCreata;
@@ -55,18 +56,21 @@ public class CreaPendenzaService {
     private final PendenzeMapper pendenzeMapper;
     private final PendenzaPostMapper pendenzaPostMapper;
     private final ObjectMapper objectMapper;
+    private final ExternalCallMetricsRecorder externalCallMetricsRecorder;
 
     public CreaPendenzaService(
             TipoVersamentoDominioRepository tipoVersamentoDominioRepository,
             PendenzeApi pendenzeApi,
             PendenzeMapper pendenzeMapper,
             PendenzaPostMapper pendenzaPostMapper,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ExternalCallMetricsRecorder externalCallMetricsRecorder) {
         this.tipoVersamentoDominioRepository = tipoVersamentoDominioRepository;
         this.pendenzeApi = pendenzeApi;
         this.pendenzeMapper = pendenzeMapper;
         this.pendenzaPostMapper = pendenzaPostMapper;
         this.objectMapper = objectMapper;
+        this.externalCallMetricsRecorder = externalCallMetricsRecorder;
     }
 
     /**
@@ -279,7 +283,10 @@ public class CreaPendenzaService {
         log.debug("Chiamata API GovPay: idA2A={}, idPendenza={}", idA2A, idPendenza);
 
         try {
-            PendenzaCreata result = pendenzeApi.addPendenza(idA2A, idPendenza, false, null, nuovaPendenza);
+            PendenzaCreata[] holder = new PendenzaCreata[1];
+            externalCallMetricsRecorder.record("pendenze", "add_pendenza",
+                    () -> holder[0] = pendenzeApi.addPendenza(idA2A, idPendenza, false, null, nuovaPendenza));
+            PendenzaCreata result = holder[0];
 
             log.info("Pendenza creata con successo: idDominio={}, numeroAvviso={}",
                     result.getIdDominio(), result.getNumeroAvviso());

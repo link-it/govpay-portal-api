@@ -35,6 +35,7 @@ import it.govpay.portal.exception.UnprocessableEntityException;
 import it.govpay.portal.exception.ValidationException;
 import it.govpay.portal.mapper.PendenzaPostMapper;
 import it.govpay.portal.mapper.PendenzeMapper;
+import it.govpay.portal.metrics.NoopExternalCallMetricsRecorder;
 import it.govpay.portal.model.Pendenza;
 import it.govpay.portal.repository.TipoVersamentoDominioRepository;
 
@@ -70,7 +71,8 @@ class CreaPendenzaServiceTest {
                 pendenzeApi,
                 pendenzeMapper,
                 pendenzaPostMapper,
-                objectMapper);
+                objectMapper,
+                new NoopExternalCallMetricsRecorder());
 
         // Setup test entities
         dominio = new Dominio();

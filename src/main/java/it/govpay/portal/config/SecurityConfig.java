@@ -193,7 +193,11 @@ public class SecurityConfig {
                 .requestMatchers("/*.yaml", "/*.json").permitAll()
                 .requestMatchers("/index.html", "/*.png", "/*.css", "/*.js").permitAll()
                 .requestMatchers("/*.css.map", "/*.js.map").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
+                // Il matcher e' per path (non per porta): sulla porta applicativa gli
+                // endpoint actuator non sono comunque mappati (404), l'esposizione
+                // effettiva avviene solo sulla porta management dedicata.
+                .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
 
                 // Tutto il resto negato
                 .anyRequest().denyAll()

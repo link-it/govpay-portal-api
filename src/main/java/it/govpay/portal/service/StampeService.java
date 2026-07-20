@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.govpay.common.metrics.ExternalCallMetricsRecorder;
 import it.govpay.portal.entity.Rpt;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.mapper.StampeMapper;
@@ -29,17 +30,20 @@ public class StampeService {
     private final PaymentNoticeApi paymentNoticeApi;
     private final ReceiptApi receiptApi;
     private final StampeMapper stampeMapper;
+    private final ExternalCallMetricsRecorder externalCallMetricsRecorder;
 
     public StampeService(VersamentoRepository versamentoRepository,
             RptRepository rptRepository,
             PaymentNoticeApi paymentNoticeApi,
             ReceiptApi receiptApi,
-            StampeMapper stampeMapper) {
+            StampeMapper stampeMapper,
+            ExternalCallMetricsRecorder externalCallMetricsRecorder) {
         this.versamentoRepository = versamentoRepository;
         this.rptRepository = rptRepository;
         this.paymentNoticeApi = paymentNoticeApi;
         this.receiptApi = receiptApi;
         this.stampeMapper = stampeMapper;
+        this.externalCallMetricsRecorder = externalCallMetricsRecorder;
     }
 
     /**
@@ -58,7 +62,10 @@ public class StampeService {
                 .map(versamento -> {
                     try {
                         PaymentNotice paymentNotice = stampeMapper.toPaymentNotice(versamento, linguaSecondaria);
-                        byte[] pdf = paymentNoticeApi.createPaymentNotice(paymentNotice);
+                        byte[][] holder = new byte[1][];
+                        externalCallMetricsRecorder.record("stampe", "payment_notice",
+                                () -> holder[0] = paymentNoticeApi.createPaymentNotice(paymentNotice));
+                        byte[] pdf = holder[0];
                         log.debug("PDF avviso generato con successo, dimensione: {} bytes", pdf.length);
                         return pdf;
                     } catch (Exception e) {
@@ -85,7 +92,10 @@ public class StampeService {
                         Rpt rpt = rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(versamento.getId())
                                 .orElse(null);
                         Receipt receipt = stampeMapper.toReceipt(versamento, rpt);
-                        byte[] pdf = receiptApi.createReceipt(receipt);
+                        byte[][] holder = new byte[1][];
+                        externalCallMetricsRecorder.record("stampe", "receipt",
+                                () -> holder[0] = receiptApi.createReceipt(receipt));
+                        byte[] pdf = holder[0];
                         log.debug("PDF ricevuta generato con successo, dimensione: {} bytes", pdf.length);
                         return pdf;
                     } catch (Exception e) {
