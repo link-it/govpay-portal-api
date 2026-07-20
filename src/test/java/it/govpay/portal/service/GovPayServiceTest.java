@@ -21,6 +21,7 @@ import it.govpay.pendenze.client.model.PendenzaCreata;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.mapper.GovPayPendenzeMapper;
+import it.govpay.portal.metrics.NoopExternalCallMetricsRecorder;
 
 @ExtendWith(MockitoExtension.class)
 class GovPayServiceTest {
@@ -35,7 +36,7 @@ class GovPayServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new GovPayService(pendenzeApi, mapper);
+        service = new GovPayService(pendenzeApi, mapper, new NoopExternalCallMetricsRecorder());
     }
 
     @Nested

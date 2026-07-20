@@ -169,7 +169,9 @@ class FreeMarkerTemplateTest {
         TransformationContext context = TransformationContext.builder();
         String result = TrasformazioniUtils.transform("math-test", template, context);
 
-        assertTrue(result.contains("3.14"), "Dovrebbe contenere il valore di PI");
+        // Il separatore decimale dipende dal locale di default della JVM
+        // (es. "3,14" in it_IT vs "3.14" in en_US): l'assert non deve dipendere da esso.
+        assertTrue(result.matches("(?s).*3[.,]14.*"), "Dovrebbe contenere il valore di PI");
     }
 
     @Test

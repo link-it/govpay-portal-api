@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,6 +20,7 @@ import it.govpay.portal.entity.Rpt;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.mapper.StampeMapper;
+import it.govpay.portal.metrics.NoopExternalCallMetricsRecorder;
 import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.repository.RptRepository;
 import it.govpay.portal.repository.VersamentoRepository;
@@ -47,7 +47,6 @@ class StampeServiceTest {
     @Mock
     private StampeMapper stampeMapper;
 
-    @InjectMocks
     private StampeService stampeService;
 
     private Dominio dominio;
@@ -58,6 +57,9 @@ class StampeServiceTest {
 
     @BeforeEach
     void setUp() {
+        stampeService = new StampeService(versamentoRepository, rptRepository, paymentNoticeApi, receiptApi,
+                stampeMapper, new NoopExternalCallMetricsRecorder());
+
         dominio = Dominio.builder()
                 .id(1L)
                 .codDominio("12345678901")
