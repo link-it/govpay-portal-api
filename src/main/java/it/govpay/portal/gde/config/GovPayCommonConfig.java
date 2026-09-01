@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.orm.jpa.SharedEntityManagerCreator;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypesScanner;
 
@@ -21,7 +22,7 @@ import it.govpay.common.entity.ConfigurazioneEntity;
 import it.govpay.common.entity.ConnettoreEntity;
 import it.govpay.common.repository.ConfigurazioneRepository;
 import it.govpay.common.repository.ConnettoreEntityRepository;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @ComponentScan(
@@ -51,13 +52,15 @@ public class GovPayCommonConfig {
     }
 
     @Bean
-    ConnettoreEntityRepository connettoreEntityRepository(EntityManager entityManager) {
-        return new JpaRepositoryFactory(entityManager).getRepository(ConnettoreEntityRepository.class);
+    ConnettoreEntityRepository connettoreEntityRepository(EntityManagerFactory entityManagerFactory) {
+        return new JpaRepositoryFactory(SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory))
+                .getRepository(ConnettoreEntityRepository.class);
     }
 
     @Bean
-    ConfigurazioneRepository configurazioneRepository(EntityManager entityManager) {
-        return new JpaRepositoryFactory(entityManager).getRepository(ConfigurazioneRepository.class);
+    ConfigurazioneRepository configurazioneRepository(EntityManagerFactory entityManagerFactory) {
+        return new JpaRepositoryFactory(SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory))
+                .getRepository(ConfigurazioneRepository.class);
     }
 
     @Bean("commonConfigurazioneService")
