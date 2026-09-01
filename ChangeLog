@@ -1,3 +1,17 @@
+2026-09-01  Giuliano Pintori <pintori@link.it>
+
+	* [Fix]
+	Risolto il mancato avvio dell'applicazione con Spring Data JPA 4.x:
+	"No qualifying bean of type 'jakarta.persistence.EntityManager'
+	available" durante la creazione dei bean connettoreEntityRepository e
+	configurazioneRepository di GovPayCommonConfig. Da Spring Data JPA 4.0
+	JpaRepositoryConfigExtension non registra più automaticamente il bean
+	EntityManager condiviso (rimosso l'aggancio di
+	EntityManagerBeanDefinitionRegistrarPostProcessor), quindi
+	l'iniezione di EntityManager nei metodi @Bean non era più risolvibile.
+	I due @Bean ricevono ora EntityManagerFactory e costruiscono
+	l'EntityManager condiviso tramite SharedEntityManagerCreator.
+
 2026-07-25  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
