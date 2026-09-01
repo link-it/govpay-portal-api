@@ -12,6 +12,20 @@
 	I due @Bean ricevono ora EntityManagerFactory e costruiscono
 	l'EntityManager condiviso tramite SharedEntityManagerCreator.
 
+	* [Refactor]
+	I repository di govpay-common non vengono più istanziati a mano con
+	JpaRepositoryFactory in GovPayCommonConfig, ma registrati da Spring Data
+	estendendo @EnableJpaRepositories a it.govpay.common.repository, con
+	esclusione dei repository non utilizzati dal portale (Applicazione,
+	Dominio, DominioLogo, Intermediario, Stazione), che insistono su entità
+	non registrate nella persistence unit e collidono per nome con gli
+	omonimi di it.govpay.portal.repository. Il bean persistenceManagedTypes
+	è stato spostato su GovPayPortalApplication per essere visibile anche
+	agli slice test @DataJpaTest. Stesso pattern già adottato da
+	govpay-console-api. Non serve più il workaround con
+	SharedEntityManagerCreator introdotto dalla voce precedente.
+	Issue #19.
+
 2026-07-25  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
