@@ -1,3 +1,28 @@
+2026-09-24  Giuliano Pintori <pintori@link.it>
+
+	* [Logging] Transaction ID e Correlation ID (BP-LOG-3).
+	Attivata la tracciatura di govpay-common: ogni richiesta ha un transaction id
+	generato dal portale (UUID v4, mai accettato dall'esterno) e un correlation id
+	letto da X-Correlation-ID o X-Request-ID, generato se assente. Entrambi
+	finiscono nell'MDC e negli header di risposta; il correlation id e' propagato
+	alle chiamate downstream, quindi una pendenza creata dal portale e' ora
+	correlabile con i log di api-pendenze e con gli eventi sul giornale.
+	Aggiunto logging.pattern.level con i due identificativi.
+	Gli header sono presenti anche sulle risposte negate con 403, che sono quelle
+	su cui serve di piu' poter risalire ai log.
+
+	* [Logging] Livelli di log modificabili a runtime (BP-LOG-1).
+	Il portale legge i livelli dalla riga log_level della tabella configurazione,
+	condivisa con gli altri componenti: una modifica fatta dalla console raggiunge
+	anche questo nodo entro l'intervallo di refresh, senza bisogno di un endpoint
+	di gestione qui. Un endpoint sulla porta applicativa non sarebbe comunque
+	raggiungibile: la catena di sicurezza chiude con anyRequest().denyAll() e il
+	portale autentica cittadini via SPID, non operatori.
+	Esposto /actuator/loggers sulla porta management per la modifica immediata sul
+	singolo nodo. E' un endpoint di scrittura e sulla porta management la
+	protezione e' demandata alla rete, come gia' per prometheus: va tenuta su rete
+	interna.
+
 2026-09-03  Giuliano Pintori <pintori@link.it>
 
 	* [Build]
