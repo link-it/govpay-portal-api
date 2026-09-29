@@ -1,3 +1,16 @@
+2026-09-29  Giuliano Pintori <pintori@link.it>
+
+	* [Fix] Il contesto non parte contro le anagrafiche nuove di govpay-common.
+	Lo scan di it.govpay.common.repository escludeva i cinque repository noti in
+	collisione elencandoli uno per uno. I repository di anagrafica aggiunti
+	dall'issue #9 (iban, tributi, tipi tributo, tipi versamento, tipi versamento
+	dominio, unita' operative) hanno gli stessi nomi bean degli omonimi del
+	portale, e non essendo nell'elenco venivano registrati: il contesto non parte
+	con "Invalid bean definition ... since there is already ... bound".
+	Il filtro e' ora espresso come regex "tutto tranne i due repository usati",
+	coerente con l'intento gia' dichiarato nel commento e con quanto fatto in
+	console-api: non va piu' aggiornato a ogni aggiunta in govpay-common.
+
 2026-09-24  Giuliano Pintori <pintori@link.it>
 
 	* [Logging] Transaction ID e Correlation ID (BP-LOG-3).
