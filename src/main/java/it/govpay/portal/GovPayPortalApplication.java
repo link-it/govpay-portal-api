@@ -19,11 +19,6 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypesScanne
 
 import it.govpay.common.entity.ConfigurazioneEntity;
 import it.govpay.common.entity.ConnettoreEntity;
-import it.govpay.common.repository.ApplicazioneRepository;
-import it.govpay.common.repository.DominioLogoRepository;
-import it.govpay.common.repository.DominioRepository;
-import it.govpay.common.repository.IntermediarioRepository;
-import it.govpay.common.repository.StazioneRepository;
 
 @SpringBootApplication(exclude = { DataJpaRepositoriesAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class })
 @EnableJpaRepositories(
@@ -34,15 +29,15 @@ import it.govpay.common.repository.StazioneRepository;
     // Il portale usa solo ConfigurazioneRepository e ConnettoreEntityRepository di govpay-common:
     // gli altri insistono su entità non registrate nella persistence unit e i loro nomi
     // collidono con gli omonimi repository di it.govpay.portal.repository.
+    //
+    // Il filtro e' espresso come regex "tutto tranne i due usati" invece che come
+    // elenco delle classi da escludere: l'elenco andava aggiornato a ogni nuovo
+    // repository aggiunto in govpay-common, e infatti si e' rotto quando l'issue #9
+    // ha aggiunto le anagrafiche (IBAN, tributi, tipi versamento, unita' operative).
     excludeFilters = @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = {
-            ApplicazioneRepository.class,
-            DominioRepository.class,
-            DominioLogoRepository.class,
-            IntermediarioRepository.class,
-            StazioneRepository.class
-        }
+        type = FilterType.REGEX,
+        pattern = "it\\.govpay\\.common\\.repository\\."
+                + "(?!ConnettoreEntityRepository$|ConfigurazioneRepository$).*"
     )
 )
 public class GovPayPortalApplication extends SpringBootServletInitializer {
