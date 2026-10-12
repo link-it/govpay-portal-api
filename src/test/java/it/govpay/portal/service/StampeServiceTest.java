@@ -24,6 +24,7 @@ import it.govpay.portal.metrics.NoopExternalCallMetricsRecorder;
 import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.repository.RptRepository;
 import it.govpay.portal.repository.VersamentoRepository;
+import it.govpay.portal.ricevuta.RicevutaPdfPayloadMapper;
 import it.govpay.stampe.client.api.PaymentNoticeApi;
 import it.govpay.stampe.client.api.ReceiptApi;
 import it.govpay.stampe.client.model.PaymentNotice;
@@ -47,6 +48,9 @@ class StampeServiceTest {
     @Mock
     private StampeMapper stampeMapper;
 
+    @Mock
+    private RicevutaPdfPayloadMapper ricevutaPdfPayloadMapper;
+
     private StampeService stampeService;
 
     private Dominio dominio;
@@ -58,7 +62,7 @@ class StampeServiceTest {
     @BeforeEach
     void setUp() {
         stampeService = new StampeService(versamentoRepository, rptRepository, paymentNoticeApi, receiptApi,
-                stampeMapper, new NoopExternalCallMetricsRecorder());
+                stampeMapper, ricevutaPdfPayloadMapper, new NoopExternalCallMetricsRecorder());
 
         dominio = Dominio.builder()
                 .id(1L)
@@ -173,9 +177,9 @@ class StampeServiceTest {
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
-            when(rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L))
+            when(rptRepository.findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L))
                     .thenReturn(Optional.of(rpt));
-            when(stampeMapper.toReceipt(versamento, rpt))
+            when(ricevutaPdfPayloadMapper.toReceipt(rpt))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
                     .thenReturn(pdfContent);
@@ -185,29 +189,24 @@ class StampeServiceTest {
             assertTrue(result.isPresent());
             assertArrayEquals(pdfContent, result.get());
 
-            verify(rptRepository).findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L);
-            verify(stampeMapper).toReceipt(versamento, rpt);
+            verify(rptRepository).findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L);
+            verify(ricevutaPdfPayloadMapper).toReceipt(rpt);
             verify(receiptApi).createReceipt(receipt);
         }
 
         @Test
-        @DisplayName("Dovrebbe generare PDF ricevuta senza RPT")
-        void shouldGenerateRicevutaPdfWithoutRpt() {
-            byte[] pdfContent = "Receipt PDF without RPT".getBytes();
-
+        @DisplayName("Dovrebbe restituire empty senza chiamare il mapper quando non esiste una RPT")
+        void shouldReturnEmptyWithoutCallingMapperWhenNoRpt() {
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
-            when(rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L))
+            when(rptRepository.findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L))
                     .thenReturn(Optional.empty());
-            when(stampeMapper.toReceipt(versamento, null))
-                    .thenReturn(receipt);
-            when(receiptApi.createReceipt(receipt))
-                    .thenReturn(pdfContent);
 
             Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
 
-            assertTrue(result.isPresent());
-            verify(stampeMapper).toReceipt(versamento, null);
+            assertTrue(result.isEmpty());
+            verify(ricevutaPdfPayloadMapper, never()).toReceipt(any());
+            verify(receiptApi, never()).createReceipt(any());
         }
 
         @Test
@@ -227,9 +226,9 @@ class StampeServiceTest {
 
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
-            when(rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L))
+            when(rptRepository.findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L))
                     .thenReturn(Optional.of(recentRpt));
-            when(stampeMapper.toReceipt(versamento, recentRpt))
+            when(ricevutaPdfPayloadMapper.toReceipt(recentRpt))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
                     .thenReturn(pdfContent);
@@ -237,7 +236,7 @@ class StampeServiceTest {
             Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
 
             assertTrue(result.isPresent());
-            verify(stampeMapper).toReceipt(versamento, recentRpt);
+            verify(ricevutaPdfPayloadMapper).toReceipt(recentRpt);
         }
 
         @Test
@@ -253,21 +252,35 @@ class StampeServiceTest {
         }
 
         @Test
-        @DisplayName("Dovrebbe restituire empty quando si verifica un errore nella generazione")
-        void shouldReturnEmptyWhenGenerationFails() {
+        @DisplayName("Dovrebbe propagare BadGatewayException se la comunicazione con govpay-stampe fallisce, non restituire empty")
+        void shouldThrowBadGatewayExceptionWhenStampeCommunicationFails() {
             when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
                     .thenReturn(Optional.of(versamento));
-            when(rptRepository.findFirstByVersamentoIdOrderByDataMsgRicevutaDesc(1L))
+            when(rptRepository.findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L))
                     .thenReturn(Optional.of(rpt));
-            when(stampeMapper.toReceipt(versamento, rpt))
+            when(ricevutaPdfPayloadMapper.toReceipt(rpt))
                     .thenReturn(receipt);
             when(receiptApi.createReceipt(receipt))
-                    .thenThrow(new RuntimeException("API Error"));
+                    .thenThrow(new org.springframework.web.client.ResourceAccessException("Connection refused"));
 
-            Optional<byte[]> result = stampeService.generateRicevutaPdf("12345678901", "123456789012345678");
+            assertThrows(it.govpay.portal.exception.BadGatewayException.class,
+                    () -> stampeService.generateRicevutaPdf("12345678901", "123456789012345678"));
+        }
 
-            // Optional.map() con funzione che ritorna null produce Optional.empty()
-            assertTrue(result.isEmpty());
+        @Test
+        @DisplayName("Dovrebbe propagare l'errore di conversione dell'XML storico, non restituire empty")
+        void shouldPropagateConversionErrorWithoutReturningEmpty() {
+            when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
+                    .thenReturn(Optional.of(versamento));
+            when(rptRepository.findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(1L))
+                    .thenReturn(Optional.of(rpt));
+            when(ricevutaPdfPayloadMapper.toReceipt(rpt))
+                    .thenThrow(new it.govpay.portal.ricevuta.pagopa.RptRtConversionException("XML malformato"));
+
+            assertThrows(it.govpay.portal.ricevuta.pagopa.RptRtConversionException.class,
+                    () -> stampeService.generateRicevutaPdf("12345678901", "123456789012345678"));
+
+            verify(receiptApi, never()).createReceipt(any());
         }
     }
 }
