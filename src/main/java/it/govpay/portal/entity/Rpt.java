@@ -50,4 +50,31 @@ public class Rpt {
 
     @Column(name = "xml_rt")
     private byte[] xmlRt;
+
+    /**
+     * Tracciato RPT originale. Serve a determinare la data operazione per SANP_230
+     * ({@code dataOraMessaggioRichiesta}), che il legacy legge dall'RPT e non dalla RT.
+     */
+    @Column(name = "xml_rpt")
+    private byte[] xmlRpt;
+
+    /**
+     * Ripiego per la data operazione SANP_230 quando {@code xmlRpt} non e' disponibile
+     * (transazioni acquisite in standin): stessa fonte da cui il legacy popola quel campo
+     * XML quando costruisce l'RPT in uscita.
+     */
+    @Column(name = "data_msg_richiesta")
+    private LocalDateTime dataMsgRichiesta;
+
+    @Column(name = "cod_esito_pagamento")
+    private Integer codEsitoPagamento;
+
+    @Column(name = "importo_totale_pagato")
+    private Double importoTotalePagato;
+
+    @Column(name = "cod_psp")
+    private String codPsp;
+
+    @Column(name = "denominazione_attestante")
+    private String denominazioneAttestante;
 }
