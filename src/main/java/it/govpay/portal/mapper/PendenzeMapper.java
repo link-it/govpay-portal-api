@@ -29,6 +29,8 @@ import it.govpay.portal.util.IuvUtils;
 @Component
 public class PendenzeMapper {
 
+    private static final String STATO_ESEGUITO = "ESEGUITO";
+
     public Pendenza toPendenza(Versamento entity) {
         if (entity == null) {
             return null;
@@ -252,37 +254,50 @@ public class PendenzeMapper {
         ricevuta.setIuv(versamento.getIuvVersamento());
         ricevuta.setIdRicevuta(versamento.getIdSessione());
 
-        List<VoceRicevuta> voci = new ArrayList<>();
-        if (versamento.getSingoliVersamenti() != null) {
-            for (SingoloVersamento sv : versamento.getSingoliVersamenti()) {
-                VoceRicevuta voce = new VoceRicevuta();
-                voce.setDescrizione(sv.getDescrizione() != null ? sv.getDescrizione() : "Voce di pagamento");
-                voce.setIdRiscossione(String.valueOf(sv.getIndiceDati() != null ? sv.getIndiceDati() : 1));
-                voce.setImporto(sv.getImportoSingoloVersamento() != null ?
-                        sv.getImportoSingoloVersamento().doubleValue() : 0.0);
-                voce.setStato("ESEGUITO");
-                voci.add(voce);
-            }
-        }
-        if (voci.isEmpty()) {
-            VoceRicevuta voce = new VoceRicevuta();
-            String causale = CausaleUtils.getSimple(versamento.getCausaleVersamento());
-            voce.setDescrizione(causale != null ? causale : "Pagamento");
-            voce.setIdRiscossione("1");
-            voce.setImporto(versamento.getImportoTotale() != null ?
-                    versamento.getImportoTotale().doubleValue() : 0.0);
-            voce.setStato("ESEGUITO");
-            voci.add(voce);
-        }
+        List<VoceRicevuta> voci = toVociRicevuta(versamento);
         ricevuta.setElencoVoci(voci);
 
         return ricevuta;
     }
 
+    private List<VoceRicevuta> toVociRicevuta(Versamento versamento) {
+        List<VoceRicevuta> voci = new ArrayList<>();
+        if (versamento.getSingoliVersamenti() != null) {
+            for (SingoloVersamento sv : versamento.getSingoliVersamenti()) {
+                voci.add(toVoceRicevuta(sv));
+            }
+        }
+        if (voci.isEmpty()) {
+            voci.add(toVoceRicevutaDefault(versamento));
+        }
+        return voci;
+    }
+
+    private VoceRicevuta toVoceRicevuta(SingoloVersamento sv) {
+        VoceRicevuta voce = new VoceRicevuta();
+        voce.setDescrizione(sv.getDescrizione() != null ? sv.getDescrizione() : "Voce di pagamento");
+        voce.setIdRiscossione(String.valueOf(sv.getIndiceDati() != null ? sv.getIndiceDati() : 1));
+        voce.setImporto(sv.getImportoSingoloVersamento() != null ?
+                sv.getImportoSingoloVersamento().doubleValue() : 0.0);
+        voce.setStato(STATO_ESEGUITO);
+        return voce;
+    }
+
+    private VoceRicevuta toVoceRicevutaDefault(Versamento versamento) {
+        VoceRicevuta voce = new VoceRicevuta();
+        String causale = CausaleUtils.getSimple(versamento.getCausaleVersamento());
+        voce.setDescrizione(causale != null ? causale : "Pagamento");
+        voce.setIdRiscossione("1");
+        voce.setImporto(versamento.getImportoTotale() != null ?
+                versamento.getImportoTotale().doubleValue() : 0.0);
+        voce.setStato(STATO_ESEGUITO);
+        return voce;
+    }
+
     private String mapStatoRicevuta(StatoVersamento stato) {
         if (stato == null) return "SCONOSCIUTO";
         return switch (stato) {
-            case ESEGUITO, INCASSATO, ESEGUITO_ALTRO_CANALE, ESEGUITO_SENZA_RPT -> "ESEGUITO";
+            case ESEGUITO, INCASSATO, ESEGUITO_ALTRO_CANALE, ESEGUITO_SENZA_RPT -> STATO_ESEGUITO;
             case PARZIALMENTE_ESEGUITO -> "PARZIALMENTE_ESEGUITO";
             case NON_ESEGUITO -> "NON_ESEGUITO";
             case ANNULLATO -> "ANNULLATO";
