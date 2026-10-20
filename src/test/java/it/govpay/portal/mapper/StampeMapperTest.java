@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import it.govpay.portal.config.GovPayStampeClientConfig;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Stazione;
@@ -28,9 +27,6 @@ import it.govpay.stampe.client.model.PaymentNotice;
 class StampeMapperTest {
 
     @Mock
-    private GovPayStampeClientConfig stampeConfig;
-
-    @Mock
     private DominioLogoRepository dominioLogoRepository;
 
     private StampeMapper stampeMapper;
@@ -41,7 +37,7 @@ class StampeMapperTest {
 
     @BeforeEach
     void setUp() {
-        stampeMapper = new StampeMapper(stampeConfig, dominioLogoRepository);
+        stampeMapper = new StampeMapper(dominioLogoRepository);
 
         stazione = Stazione.builder()
                 .id(1L)
