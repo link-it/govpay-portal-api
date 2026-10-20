@@ -1,6 +1,5 @@
 package it.govpay.portal.gde.service;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -20,7 +19,6 @@ import it.govpay.common.gde.GdeEventInfo;
 import it.govpay.gde.client.beans.ComponenteEvento;
 import it.govpay.gde.client.beans.NuovoEvento;
 import it.govpay.portal.gde.mapper.EventoPortalMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -100,47 +98,42 @@ public class GdeService extends AbstractGdeService {
         }, this.asyncExecutor);
     }
 
-    public void saveEventOk(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
-                             HttpServletRequest request, int statusCode, String idDominio,
-                             Object requestBody, Object responseBody) {
-        saveEventOk(tipoEvento, dataStart, dataEnd, request, statusCode, idDominio, requestBody, responseBody, null);
+    public void saveEventOk(GdeEventContext ctx, String idDominio, Object requestBody, Object responseBody) {
+        saveEventOk(ctx, idDominio, requestBody, responseBody, null);
     }
 
-    public void saveEventOk(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
-                             HttpServletRequest request, int statusCode, String idDominio,
-                             Object requestBody, Object responseBody, String principal) {
+    public void saveEventOk(GdeEventContext ctx, String idDominio, Object requestBody, Object responseBody,
+                             String principal) {
         String transactionId = UUID.randomUUID().toString();
-        NuovoEvento evento = eventoPortalMapper.createEventoOk(tipoEvento, transactionId, dataStart, dataEnd, principal);
+        NuovoEvento evento = eventoPortalMapper.createEventoOk(ctx.tipoEvento(), transactionId, ctx.dataStart(),
+                ctx.dataEnd(), principal);
 
         if (idDominio != null) {
             evento.setIdDominio(idDominio);
         }
 
-        eventoPortalMapper.setParametriRichiesta(evento, request, requestBody);
-        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode, responseBody);
+        eventoPortalMapper.setParametriRichiesta(evento, ctx.request(), requestBody);
+        eventoPortalMapper.setParametriRisposta(evento, ctx.dataEnd(), ctx.statusCode(), responseBody);
 
         sendEventAsync(evento);
     }
 
-    public void saveEventKo(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
-                             HttpServletRequest request, int statusCode, Exception exception,
-                             String idDominio, Object requestBody) {
-        saveEventKo(tipoEvento, dataStart, dataEnd, request, statusCode, exception, idDominio, requestBody, null);
+    public void saveEventKo(GdeEventContext ctx, Exception exception, String idDominio, Object requestBody) {
+        saveEventKo(ctx, exception, idDominio, requestBody, null);
     }
 
-    public void saveEventKo(String tipoEvento, OffsetDateTime dataStart, OffsetDateTime dataEnd,
-                             HttpServletRequest request, int statusCode, Exception exception,
-                             String idDominio, Object requestBody, String principal) {
+    public void saveEventKo(GdeEventContext ctx, Exception exception, String idDominio, Object requestBody,
+                             String principal) {
         String transactionId = UUID.randomUUID().toString();
-        NuovoEvento evento = eventoPortalMapper.createEventoKo(tipoEvento, transactionId, dataStart, dataEnd,
-                statusCode, exception, principal);
+        NuovoEvento evento = eventoPortalMapper.createEventoKo(ctx.tipoEvento(), transactionId, ctx.dataStart(),
+                ctx.dataEnd(), ctx.statusCode(), exception, principal);
 
         if (idDominio != null) {
             evento.setIdDominio(idDominio);
         }
 
-        eventoPortalMapper.setParametriRichiesta(evento, request, requestBody);
-        eventoPortalMapper.setParametriRisposta(evento, dataEnd, statusCode,
+        eventoPortalMapper.setParametriRichiesta(evento, ctx.request(), requestBody);
+        eventoPortalMapper.setParametriRisposta(evento, ctx.dataEnd(), ctx.statusCode(),
                 exception != null ? exception.getMessage() : null);
 
         sendEventAsync(evento);

@@ -31,6 +31,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeEventContext;
 import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.repository.VersamentoRepository;
 import it.govpay.portal.security.hardening.matcher.AvvisiRequestMatcher;
@@ -47,6 +48,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
+    private static final String LOGOUT_PATH = "/logout";
 
     private final SecurityProperties securityProperties;
     private final ConfigurazioneService configurazioneService;
@@ -114,9 +116,9 @@ public class SecurityConfig {
         PortalLogoutSuccessHandler successHandler = new PortalLogoutSuccessHandler(securityProperties, gdeService);
 
         LogoutFilter logoutFilter = new LogoutFilter(successHandler, securityContextHandler, cookieHandler);
-        logoutFilter.setFilterProcessesUrl("/logout");
+        logoutFilter.setFilterProcessesUrl(LOGOUT_PATH);
         logoutFilter.setLogoutRequestMatcher(new OrRequestMatcher(
-                PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout"),
+                PathPatternRequestMatcher.pathPattern(HttpMethod.GET, LOGOUT_PATH),
                 PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout/**")
         ));
 
@@ -124,7 +126,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         // CSRF token repository che salva il token in un cookie leggibile da JavaScript.
         // HttpOnly=false e' necessario per permettere a SPA/JavaScript di leggere il token
         // dal cookie XSRF-TOKEN e inviarlo nell'header X-XSRF-TOKEN nelle richieste POST/PUT/DELETE.
@@ -246,14 +248,14 @@ public class SecurityConfig {
         String tipoEvento = resolveOperationType(request.getRequestURI());
         if (tipoEvento != null) {
             OffsetDateTime now = OffsetDateTime.now();
-            gdeService.saveEventKo(tipoEvento, now, now,
-                    request, HttpStatus.FORBIDDEN.value(), exception, null, null);
+            gdeService.saveEventKo(new GdeEventContext(tipoEvento, now, now,
+                    request, HttpStatus.FORBIDDEN.value()), exception, null, null);
         }
     }
 
     private static final Map<String, String> AUTH_ENDPOINT_MAP = Map.of(
             "/profilo", Costanti.OP_GET_PROFILO,
-            "/logout", Costanti.OP_LOGOUT
+            LOGOUT_PATH, Costanti.OP_LOGOUT
     );
 
     private String resolveOperationType(String requestUri) {

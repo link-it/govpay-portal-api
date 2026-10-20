@@ -6,16 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Builder per costruire il contesto delle trasformazioni FreeMarker.
  * Sostituisce i metodi fillDynamicMap di TrasformazioniUtils di GovPay.
  */
 public class TransformationContext {
-
-    private static final Logger log = LoggerFactory.getLogger(TransformationContext.class);
 
     private final Map<String, Object> context;
 
@@ -260,12 +256,8 @@ public class TransformationContext {
      */
     public Map<String, Object> build() {
         // Assicura che i valori di default siano presenti
-        if (!context.containsKey(Costanti.MAP_DATE_OBJECT)) {
-            context.put(Costanti.MAP_DATE_OBJECT, new Date());
-        }
-        if (!context.containsKey(Costanti.MAP_CTX_OBJECT)) {
-            context.put(Costanti.MAP_CTX_OBJECT, new HashMap<String, Object>());
-        }
+        context.computeIfAbsent(Costanti.MAP_DATE_OBJECT, k -> new Date());
+        context.computeIfAbsent(Costanti.MAP_CTX_OBJECT, k -> new HashMap<String, Object>());
         return new HashMap<>(context);
     }
 

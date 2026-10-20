@@ -81,9 +81,7 @@ public class CreaPendenzaService {
      * @param requestBody dati del form (struttura dinamica)
      * @param idA2A identificativo applicazione (opzionale)
      * @param idPendenza identificativo pendenza (opzionale)
-     * @param headers headers HTTP della richiesta
-     * @param queryParams parametri query della richiesta
-     * @param pathParams parametri path della richiesta
+     * @param parametriRichiesta headers, parametri query e parametri path della richiesta
      * @return la pendenza creata
      */
     public Pendenza creaPendenza(
@@ -92,9 +90,7 @@ public class CreaPendenzaService {
             Map<String, Object> requestBody,
             String idA2A,
             String idPendenza,
-            Map<String, String> headers,
-            Map<String, String> queryParams,
-            Map<String, String> pathParams) {
+            ParametriRichiesta parametriRichiesta) {
 
         log.debug("Creazione pendenza: idDominio={}, idTipoPendenza={}", idDominio, idTipoPendenza);
 
@@ -126,9 +122,7 @@ public class CreaPendenzaService {
                     idDominio,
                     idTipoPendenza,
                     inputJson,
-                    headers,
-                    queryParams,
-                    pathParams);
+                    parametriRichiesta);
         }
 
         // 5. Parse il JSON trasformato in PendenzaPost (bean interno)
@@ -179,9 +173,7 @@ public class CreaPendenzaService {
             String idDominio,
             String idTipoPendenza,
             String inputJson,
-            Map<String, String> headers,
-            Map<String, String> queryParams,
-            Map<String, String> pathParams) {
+            ParametriRichiesta parametriRichiesta) {
 
         String tipoTrasformazione = tipoVersamentoDominio.getPagTrasformazioneTipo();
         if (!FREEMARKER.equalsIgnoreCase(tipoTrasformazione)) {
@@ -212,7 +204,7 @@ public class CreaPendenzaService {
 
         // Costruisci il contesto della trasformazione
         Map<String, Object> context = buildTransformationContext(
-                idDominio, idTipoPendenza, inputJson, headers, queryParams, pathParams);
+                idDominio, idTipoPendenza, inputJson, parametriRichiesta);
 
         // Applica la trasformazione
         try {
@@ -238,9 +230,11 @@ public class CreaPendenzaService {
             String idDominio,
             String idTipoPendenza,
             String inputJson,
-            Map<String, String> headers,
-            Map<String, String> queryParams,
-            Map<String, String> pathParams) {
+            ParametriRichiesta parametriRichiesta) {
+
+        Map<String, String> headers = parametriRichiesta.headers();
+        Map<String, String> queryParams = parametriRichiesta.queryParams();
+        Map<String, String> pathParams = parametriRichiesta.pathParams();
 
         TransformationContext builder = TransformationContext.builder()
                 .withDate()

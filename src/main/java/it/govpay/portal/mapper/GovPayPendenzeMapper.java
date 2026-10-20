@@ -44,6 +44,23 @@ public class GovPayPendenzeMapper {
         pendenza.setDirezione(versamento.getDirezione());
         pendenza.setDivisione(versamento.getDivisione());
 
+        mapDate(versamento, pendenza);
+        mapTassonomiaAvviso(versamento, pendenza);
+
+        pendenza.setSoggettoPagatore(toSoggetto(versamento));
+
+        List<NuovaVocePendenza> voci = new ArrayList<>();
+        if (versamento.getSingoliVersamenti() != null) {
+            for (SingoloVersamento sv : versamento.getSingoliVersamenti()) {
+                voci.add(toNuovaVocePendenza(sv));
+            }
+        }
+        pendenza.setVoci(voci);
+
+        return pendenza;
+    }
+
+    private void mapDate(Versamento versamento, NuovaPendenza pendenza) {
         if (versamento.getDataValidita() != null) {
             pendenza.setDataValidita(versamento.getDataValidita().toLocalDate());
         }
@@ -60,7 +77,9 @@ public class GovPayPendenzeMapper {
         if (versamento.getDataNotificaAvviso() != null) {
             pendenza.setDataNotificaAvviso(versamento.getDataNotificaAvviso().toLocalDate());
         }
+    }
 
+    private void mapTassonomiaAvviso(Versamento versamento, NuovaPendenza pendenza) {
         if (versamento.getTassonomiaAvviso() != null) {
             try {
                 pendenza.setTassonomiaAvviso(TassonomiaAvviso.fromValue(versamento.getTassonomiaAvviso()));
@@ -68,18 +87,6 @@ public class GovPayPendenzeMapper {
                 // ignore invalid tassonomia
             }
         }
-
-        pendenza.setSoggettoPagatore(toSoggetto(versamento));
-
-        List<NuovaVocePendenza> voci = new ArrayList<>();
-        if (versamento.getSingoliVersamenti() != null) {
-            for (SingoloVersamento sv : versamento.getSingoliVersamenti()) {
-                voci.add(toNuovaVocePendenza(sv));
-            }
-        }
-        pendenza.setVoci(voci);
-
-        return pendenza;
     }
 
     private Soggetto toSoggetto(Versamento versamento) {

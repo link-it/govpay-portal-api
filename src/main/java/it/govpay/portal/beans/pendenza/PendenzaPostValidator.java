@@ -36,12 +36,12 @@ public class PendenzaPostValidator {
     // Pattern da GovPay CostantiValidazione
     private static final String PATTERN_ID_A2A = "^[a-zA-Z0-9\\-_]{1,35}$";
     private static final String PATTERN_ID_PENDENZA = "^[a-zA-Z0-9\\-_]{1,35}$";
-    private static final String PATTERN_ID_DOMINIO = "^([0-9]){11}$";
+    private static final String PATTERN_ID_DOMINIO = "^(\\d){11}$";
     private static final String PATTERN_ID_TIPO_VERSAMENTO = "^[a-zA-Z0-9\\-_\\.]{1,35}$";
     private static final String PATTERN_ID_UO = "^[a-zA-Z0-9\\-_]{1,35}$";
     private static final String PATTERN_ID_VOCE_PENDENZA = "^[a-zA-Z0-9\\-_]{1,35}$";
-    private static final String PATTERN_NUMERO_AVVISO = "^[0-9]{18}$";
-    private static final String PATTERN_ANNO_RIFERIMENTO = "^[0-9]{4}$";
+    private static final String PATTERN_NUMERO_AVVISO = "^\\d{18}$";
+    private static final String PATTERN_ANNO_RIFERIMENTO = "^\\d{4}$";
     private static final String PATTERN_NAZIONE = "^[A-Z]{2}$";
     private static final String PATTERN_EMAIL = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$";
     private static final String PATTERN_PROVINCIA = "^[A-Z]{2}$";
@@ -167,66 +167,44 @@ public class PendenzaPostValidator {
         }
 
         // Tipo
-        if (soggetto.getTipo() != null) {
-            String tipo = soggetto.getTipo().toString();
-            if (tipo.length() > 1) {
-                throw new ValidationException("Il valore del campo soggettoPagatore.tipo non rispetta la lunghezza massima di 1 carattere.");
-            }
+        if (soggetto.getTipo() != null && soggetto.getTipo().toString().length() > 1) {
+            throw new ValidationException("Il valore del campo soggettoPagatore.tipo non rispetta la lunghezza massima di 1 carattere.");
         }
 
-        // Identificativo (non obbligatorio)
-        if (StringUtils.hasText(soggetto.getIdentificativo()) && soggetto.getIdentificativo().length() > 16) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.identificativo non rispetta la lunghezza massima di 16 caratteri.");
-        }
-
-        // Anagrafica (non obbligatoria)
-        if (StringUtils.hasText(soggetto.getAnagrafica()) && soggetto.getAnagrafica().length() > 70) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.anagrafica non rispetta la lunghezza massima di 70 caratteri.");
-        }
-
-        // Indirizzo
-        if (StringUtils.hasText(soggetto.getIndirizzo()) && soggetto.getIndirizzo().length() > 70) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.indirizzo non rispetta la lunghezza massima di 70 caratteri.");
-        }
-
-        // Civico
-        if (StringUtils.hasText(soggetto.getCivico()) && soggetto.getCivico().length() > 16) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.civico non rispetta la lunghezza massima di 16 caratteri.");
-        }
-
-        // CAP
-        if (StringUtils.hasText(soggetto.getCap()) && soggetto.getCap().length() > 16) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.cap non rispetta la lunghezza massima di 16 caratteri.");
-        }
-
-        // Località
-        if (StringUtils.hasText(soggetto.getLocalita()) && soggetto.getLocalita().length() > 35) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.localita non rispetta la lunghezza massima di 35 caratteri.");
-        }
-
-        // Provincia
-        if (StringUtils.hasText(soggetto.getProvincia()) && soggetto.getProvincia().length() > 35) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.provincia non rispetta la lunghezza massima di 35 caratteri.");
-        }
+        validaLunghezzaMassima(soggetto.getIdentificativo(), 16, "soggettoPagatore.identificativo");
+        validaLunghezzaMassima(soggetto.getAnagrafica(), 70, "soggettoPagatore.anagrafica");
+        validaLunghezzaMassima(soggetto.getIndirizzo(), 70, "soggettoPagatore.indirizzo");
+        validaLunghezzaMassima(soggetto.getCivico(), 16, "soggettoPagatore.civico");
+        validaLunghezzaMassima(soggetto.getCap(), 16, "soggettoPagatore.cap");
+        validaLunghezzaMassima(soggetto.getLocalita(), 35, "soggettoPagatore.localita");
+        validaLunghezzaMassima(soggetto.getProvincia(), 35, "soggettoPagatore.provincia");
 
         // Nazione
         if (StringUtils.hasText(soggetto.getNazione()) && !Pattern.matches(PATTERN_NAZIONE, soggetto.getNazione())) {
             throw new ValidationException("Il valore [" + soggetto.getNazione() + "] del campo soggettoPagatore.nazione non rispetta il pattern richiesto: " + PATTERN_NAZIONE);
         }
 
-        // Email
-        if (StringUtils.hasText(soggetto.getEmail())) {
-            if (soggetto.getEmail().length() > 256) {
-                throw new ValidationException("Il valore del campo soggettoPagatore.email non rispetta la lunghezza massima di 256 caratteri.");
-            }
-            if (!Pattern.matches(PATTERN_EMAIL, soggetto.getEmail())) {
-                throw new ValidationException("Il valore [" + soggetto.getEmail() + "] del campo soggettoPagatore.email non rispetta il pattern richiesto: " + PATTERN_EMAIL);
-            }
-        }
+        validaEmailSoggetto(soggetto.getEmail());
 
-        // Cellulare
-        if (StringUtils.hasText(soggetto.getCellulare()) && soggetto.getCellulare().length() > 35) {
-            throw new ValidationException("Il valore del campo soggettoPagatore.cellulare non rispetta la lunghezza massima di 35 caratteri.");
+        validaLunghezzaMassima(soggetto.getCellulare(), 35, "soggettoPagatore.cellulare");
+    }
+
+    private void validaEmailSoggetto(String email) throws ValidationException {
+        if (!StringUtils.hasText(email)) {
+            return;
+        }
+        validaLunghezzaMassima(email, 256, "soggettoPagatore.email");
+        if (!Pattern.matches(PATTERN_EMAIL, email)) {
+            throw new ValidationException("Il valore [" + email + "] del campo soggettoPagatore.email non rispetta il pattern richiesto: " + PATTERN_EMAIL);
+        }
+    }
+
+    /**
+     * Verifica che il valore, se valorizzato, non superi la lunghezza massima indicata.
+     */
+    private void validaLunghezzaMassima(String valore, int lunghezzaMassima, String campo) throws ValidationException {
+        if (StringUtils.hasText(valore) && valore.length() > lunghezzaMassima) {
+            throw new ValidationException("Il valore del campo " + campo + " non rispetta la lunghezza massima di " + lunghezzaMassima + " caratteri.");
         }
     }
 
@@ -331,42 +309,49 @@ public class PendenzaPostValidator {
             throw new ValidationException("L'elemento in posizione " + index + " del campo voci è vuoto.");
         }
 
-        // idVocePendenza
-        if (!StringUtils.hasText(voce.getIdVocePendenza())) {
+        validaIdVocePendenza(voce.getIdVocePendenza(), prefix);
+        validaImportoVoce(voce.getImporto(), prefix);
+        validaDescrizioneVoce(voce.getDescrizione(), prefix);
+        validaLunghezzaMassima(voce.getDescrizioneCausaleRPT(), 140, prefix + ".descrizioneCausaleRPT");
+        validaTipoAccredito(voce, prefix);
+    }
+
+    private void validaIdVocePendenza(String idVocePendenza, String prefix) throws ValidationException {
+        if (!StringUtils.hasText(idVocePendenza)) {
             throw new ValidationException("Il campo " + prefix + ".idVocePendenza non deve essere vuoto.");
         }
-        if (!Pattern.matches(PATTERN_ID_VOCE_PENDENZA, voce.getIdVocePendenza())) {
-            throw new ValidationException("Il valore [" + voce.getIdVocePendenza() + "] del campo " + prefix + ".idVocePendenza non rispetta il pattern richiesto: " + PATTERN_ID_VOCE_PENDENZA);
+        if (!Pattern.matches(PATTERN_ID_VOCE_PENDENZA, idVocePendenza)) {
+            throw new ValidationException("Il valore [" + idVocePendenza + "] del campo " + prefix + ".idVocePendenza non rispetta il pattern richiesto: " + PATTERN_ID_VOCE_PENDENZA);
         }
+    }
 
-        // importo
-        if (voce.getImporto() == null) {
+    private void validaImportoVoce(BigDecimal importo, String prefix) throws ValidationException {
+        if (importo == null) {
             throw new ValidationException("Il campo " + prefix + ".importo non deve essere vuoto.");
         }
-        if (voce.getImporto().compareTo(BigDecimal.ZERO) < 0) {
+        if (importo.compareTo(BigDecimal.ZERO) < 0) {
             throw new ValidationException("Il campo " + prefix + ".importo deve essere superiore o uguale a 0.");
         }
-        if (voce.getImporto().compareTo(MAX_IMPORTO) > 0) {
+        if (importo.compareTo(MAX_IMPORTO) > 0) {
             throw new ValidationException("Il campo " + prefix + ".importo deve essere inferiore o uguale a " + MAX_IMPORTO + ".");
         }
-        if (voce.getImporto().scale() > 2) {
+        if (importo.scale() > 2) {
             throw new ValidationException("Il campo " + prefix + ".importo non deve superare le 2 cifre decimali.");
         }
+    }
 
-        // descrizione
-        if (!StringUtils.hasText(voce.getDescrizione())) {
+    private void validaDescrizioneVoce(String descrizione, String prefix) throws ValidationException {
+        if (!StringUtils.hasText(descrizione)) {
             throw new ValidationException("Il campo " + prefix + ".descrizione non deve essere vuoto.");
         }
-        if (voce.getDescrizione().length() > 255) {
-            throw new ValidationException("Il valore del campo " + prefix + ".descrizione non rispetta la lunghezza massima di 255 caratteri.");
-        }
+        validaLunghezzaMassima(descrizione, 255, prefix + ".descrizione");
+    }
 
-        // descrizioneCausaleRPT
-        if (StringUtils.hasText(voce.getDescrizioneCausaleRPT()) && voce.getDescrizioneCausaleRPT().length() > 140) {
-            throw new ValidationException("Il valore del campo " + prefix + ".descrizioneCausaleRPT non rispetta la lunghezza massima di 140 caratteri.");
-        }
-
-        // Verifica mutua esclusività tra codEntrata, tipoBollo, ibanAccredito
+    /**
+     * Verifica la mutua esclusivita' tra codEntrata, tipoBollo e ibanAccredito
+     * e i campi richiesti da ciascuna tipologia.
+     */
+    private void validaTipoAccredito(VocePendenza voce, String prefix) throws ValidationException {
         boolean hasCodEntrata = StringUtils.hasText(voce.getCodEntrata());
         boolean hasTipoBollo = StringUtils.hasText(voce.getTipoBollo());
         boolean hasIbanAccredito = StringUtils.hasText(voce.getIbanAccredito());
@@ -381,26 +366,34 @@ public class PendenzaPostValidator {
             if (hasIbanAccredito) {
                 throw new ValidationException("Valorizzato tipoBollo. Il campo ibanAccredito deve essere vuoto.");
             }
-            // hashDocumento e provinciaResidenza sono richiesti
-            if (!StringUtils.hasText(voce.getHashDocumento())) {
-                throw new ValidationException("Il campo " + prefix + ".hashDocumento non deve essere vuoto quando tipoBollo è valorizzato.");
-            }
-            if (!StringUtils.hasText(voce.getProvinciaResidenza())) {
-                throw new ValidationException("Il campo " + prefix + ".provinciaResidenza non deve essere vuoto quando tipoBollo è valorizzato.");
-            }
-            if (!Pattern.matches(PATTERN_PROVINCIA, voce.getProvinciaResidenza())) {
-                throw new ValidationException("Il valore [" + voce.getProvinciaResidenza() + "] del campo " + prefix + ".provinciaResidenza non rispetta il pattern richiesto: " + PATTERN_PROVINCIA);
-            }
+            validaVoceBollo(voce, prefix);
         } else if (hasIbanAccredito) {
-            // Se ibanAccredito è valorizzato, tipoContabilita e codiceContabilita sono richiesti
-            if (voce.getTipoContabilita() == null) {
-                throw new ValidationException("Il campo " + prefix + ".tipoContabilita non deve essere vuoto quando ibanAccredito è valorizzato.");
-            }
-            if (!StringUtils.hasText(voce.getCodiceContabilita())) {
-                throw new ValidationException("Il campo " + prefix + ".codiceContabilita non deve essere vuoto quando ibanAccredito è valorizzato.");
-            }
+            validaVoceIban(voce, prefix);
         } else {
             throw new ValidationException("Uno dei campi tra ibanAccredito, tipoBollo o codEntrata deve essere valorizzato per " + prefix + ".");
+        }
+    }
+
+    private void validaVoceBollo(VocePendenza voce, String prefix) throws ValidationException {
+        // hashDocumento e provinciaResidenza sono richiesti
+        if (!StringUtils.hasText(voce.getHashDocumento())) {
+            throw new ValidationException("Il campo " + prefix + ".hashDocumento non deve essere vuoto quando tipoBollo è valorizzato.");
+        }
+        if (!StringUtils.hasText(voce.getProvinciaResidenza())) {
+            throw new ValidationException("Il campo " + prefix + ".provinciaResidenza non deve essere vuoto quando tipoBollo è valorizzato.");
+        }
+        if (!Pattern.matches(PATTERN_PROVINCIA, voce.getProvinciaResidenza())) {
+            throw new ValidationException("Il valore [" + voce.getProvinciaResidenza() + "] del campo " + prefix + ".provinciaResidenza non rispetta il pattern richiesto: " + PATTERN_PROVINCIA);
+        }
+    }
+
+    private void validaVoceIban(VocePendenza voce, String prefix) throws ValidationException {
+        // Se ibanAccredito è valorizzato, tipoContabilita e codiceContabilita sono richiesti
+        if (voce.getTipoContabilita() == null) {
+            throw new ValidationException("Il campo " + prefix + ".tipoContabilita non deve essere vuoto quando ibanAccredito è valorizzato.");
+        }
+        if (!StringUtils.hasText(voce.getCodiceContabilita())) {
+            throw new ValidationException("Il campo " + prefix + ".codiceContabilita non deve essere vuoto quando ibanAccredito è valorizzato.");
         }
     }
 

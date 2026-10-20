@@ -128,9 +128,7 @@ class CreaPendenzaServiceTest {
                 requestBody,
                 null,
                 null,
-                new HashMap<>(),
-                new HashMap<>(),
-                Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza));
+                new ParametriRichiesta(new HashMap<>(), new HashMap<>(), Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza)));
 
         // Then
         assertNotNull(result);
@@ -160,9 +158,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
     }
 
     @Test
@@ -186,9 +182,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
     }
 
     @Test
@@ -253,9 +247,7 @@ class CreaPendenzaServiceTest {
                 requestBody,
                 null,
                 null,
-                new HashMap<>(),
-                new HashMap<>(),
-                Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza));
+                new ParametriRichiesta(new HashMap<>(), new HashMap<>(), Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza)));
 
         // Then
         assertNotNull(result);
@@ -287,9 +279,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
     }
 
     @Test
@@ -324,9 +314,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
 
         assertTrue(exception.getMessage().contains("idA2A"));
     }
@@ -365,9 +353,7 @@ class CreaPendenzaServiceTest {
                 requestBody,
                 idA2A,
                 null,
-                new HashMap<>(),
-                new HashMap<>(),
-                Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza));
+                new ParametriRichiesta(new HashMap<>(), new HashMap<>(), Map.of("idDominio", idDominio, "idTipoPendenza", idTipoPendenza)));
 
         // Then
         assertNotNull(result);
@@ -406,9 +392,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
 
         // Verifica che l'eccezione contenga il messaggio sulla causale
         assertTrue(exception.getMessage().contains("causale"));
@@ -438,9 +422,7 @@ class CreaPendenzaServiceTest {
                         requestBody,
                         null,
                         null,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        new HashMap<>()));
+                        new ParametriRichiesta(new HashMap<>(), new HashMap<>(), new HashMap<>())));
 
         // Verifica che l'eccezione contenga il messaggio sulle voci
         assertTrue(exception.getMessage().contains("voci"));

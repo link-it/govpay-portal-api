@@ -13,6 +13,8 @@ import it.govpay.portal.model.Errore;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String CATEGORIA_RICHIESTA = "RICHIESTA";
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Errore> handleUnauthorizedException(UnauthorizedException ex) {
         Errore errore = new Errore();
@@ -36,7 +38,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Errore> handleNotFoundException(NotFoundException ex) {
         Errore errore = new Errore();
-        errore.setCategoria("RICHIESTA");
+        errore.setCategoria(CATEGORIA_RICHIESTA);
         errore.setCodice("404");
         errore.setDescrizione("Risorsa non trovata");
         errore.setDettaglio(ex.getMessage());
@@ -46,7 +48,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Errore> handleBadRequestException(BadRequestException ex) {
         Errore errore = new Errore();
-        errore.setCategoria("RICHIESTA");
+        errore.setCategoria(CATEGORIA_RICHIESTA);
         errore.setCodice("400");
         errore.setDescrizione("Richiesta non valida");
         errore.setDettaglio(ex.getMessage());
@@ -56,7 +58,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Errore> handleValidationException(ValidationException ex) {
         Errore errore = new Errore();
-        errore.setCategoria("RICHIESTA");
+        errore.setCategoria(CATEGORIA_RICHIESTA);
         errore.setCodice("VALIDAZIONE");
         errore.setDescrizione("Errore di validazione");
         errore.setDettaglio(ex.getMessage());
@@ -66,7 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<Errore> handleUnprocessableEntityException(UnprocessableEntityException ex) {
         Errore errore = new Errore();
-        errore.setCategoria("RICHIESTA");
+        errore.setCategoria(CATEGORIA_RICHIESTA);
         errore.setCodice("422");
         errore.setDescrizione("Entità non processabile");
         errore.setDettaglio(ex.getMessage());

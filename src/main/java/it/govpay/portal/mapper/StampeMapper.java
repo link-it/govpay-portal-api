@@ -1,11 +1,9 @@
 package it.govpay.portal.mapper;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
 
 import org.springframework.stereotype.Component;
 
-import it.govpay.portal.config.GovPayStampeClientConfig;
 import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.portal.entity.CausaleUtils;
 import it.govpay.portal.entity.Dominio;
@@ -22,14 +20,9 @@ import it.govpay.stampe.client.model.PaymentNotice;
 @Component
 public class StampeMapper {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-
-    private final GovPayStampeClientConfig stampeConfig;
     private final DominioLogoRepository dominioLogoRepository;
 
-    public StampeMapper(GovPayStampeClientConfig stampeConfig, DominioLogoRepository dominioLogoRepository) {
-        this.stampeConfig = stampeConfig;
+    public StampeMapper(DominioLogoRepository dominioLogoRepository) {
         this.dominioLogoRepository = dominioLogoRepository;
     }
 

@@ -3,7 +3,6 @@ package it.govpay.portal.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 
 import it.govpay.common.metrics.ExternalCallMetricsRecorder;
 import it.govpay.pendenze.client.api.PendenzeApi;
@@ -43,17 +42,12 @@ public class GovPayService {
 
         NuovaPendenza nuovaPendenza = mapper.toNuovaPendenza(versamento);
 
-        try {
-            PendenzaCreata[] holder = new PendenzaCreata[1];
-            externalCallMetricsRecorder.record("pendenze", "add_pendenza",
-                    () -> holder[0] = pendenzeApi.addPendenza(idA2A, idPendenza, stampaAvviso, dataAvvisatura, nuovaPendenza));
-            PendenzaCreata result = holder[0];
-            log.info("Pendenza created successfully: idDominio={}, numeroAvviso={}",
-                    result.getIdDominio(), result.getNumeroAvviso());
-            return result;
-        } catch (RestClientException e) {
-            log.error("Error calling GovPay addPendenza: {}", e.getMessage(), e);
-            throw e;
-        }
+        PendenzaCreata[] holder = new PendenzaCreata[1];
+        externalCallMetricsRecorder.record("pendenze", "add_pendenza",
+                () -> holder[0] = pendenzeApi.addPendenza(idA2A, idPendenza, stampaAvviso, dataAvvisatura, nuovaPendenza));
+        PendenzaCreata result = holder[0];
+        log.info("Pendenza created successfully: idDominio={}, numeroAvviso={}",
+                result.getIdDominio(), result.getNumeroAvviso());
+        return result;
     }
 }

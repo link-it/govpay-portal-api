@@ -353,8 +353,8 @@ class ReCaptchaValidatorTest {
 
             boolean result = validator.validate(request);
 
-            // La condizione nel codice e': if (score < soglia) return false
-            // 0.5 NON E' < 0.5, quindi passa
+            // Il validatore rifiuta solo score strettamente inferiori alla soglia:
+            // 0.5 non e' inferiore a 0.5, quindi passa
             assertTrue(result);
         }
 

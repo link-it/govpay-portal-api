@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -174,11 +175,9 @@ public class PendenzaPostMapper {
             return new ArrayList<>();
         }
 
-        List<NuovaVocePendenza> result = new ArrayList<>();
-        for (VocePendenza v : source) {
-            result.add(toClientVoce(v));
-        }
-        return result;
+        return source.stream()
+                .map(this::toClientVoce)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private NuovaVocePendenza toClientVoce(VocePendenza source) {

@@ -5,7 +5,6 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +103,7 @@ public class ReCaptchaValidator {
             log.debug("Risposta ReCaptcha: success={}, score={}", googleResponse.isSuccess(), googleResponse.getScore());
 
             if (!googleResponse.isSuccess()) {
-                log.warn("Verifica ReCaptcha fallita: {}", Arrays.toString(googleResponse.getErrorCodes()));
+                log.warn("Verifica ReCaptcha fallita: {}", (Object) googleResponse.getErrorCodes());
                 return false;
             }
 

@@ -32,8 +32,6 @@ class SecurityConfigTest {
     private static final String SPID_NAME = "X-SPID-NAME";
     private static final String SPID_FAMILY_NAME = "X-SPID-FAMILYNAME";
     private static final String SPID_EMAIL = "X-SPID-EMAIL";
-    private static final String SPID_MOBILE_PHONE = "X-SPID-MOBILEPHONE";
-    private static final String SPID_ADDRESS = "X-SPID-ADDRESS";
 
     @Nested
     @DisplayName("Endpoint protetti - richiedono autenticazione")

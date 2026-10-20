@@ -60,7 +60,7 @@ public class AvvisiRequestMatcher extends HardeningRequestMatcher {
 
         // Estrai idDominio e numeroAvviso dal path
         String[] avvisoParams = extractAvvisoParams(request);
-        if (avvisoParams == null) {
+        if (avvisoParams.length == 0) {
             log.warn("Impossibile estrarre parametri avviso dal path: {}", request.getPathInfo());
             return false;
         }
@@ -82,7 +82,7 @@ public class AvvisiRequestMatcher extends HardeningRequestMatcher {
         if (matcher.find()) {
             return new String[]{matcher.group(1), matcher.group(2)};
         }
-        return null;
+        return new String[0];
     }
 
     private boolean applyAvvisoHardening(HttpServletRequest request, String idDominio, String numeroAvvisoOrIuv) {
