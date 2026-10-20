@@ -22,6 +22,7 @@ import it.govpay.portal.api.AnagraficaApi;
 import it.govpay.portal.config.SpidUserDetails;
 import it.govpay.portal.exception.NotFoundException;
 import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeEventContext;
 import it.govpay.portal.gde.service.GdeService;
 import lombok.extern.slf4j.Slf4j;
 import it.govpay.portal.model.Dominio;
@@ -56,12 +57,12 @@ public class AnagraficaController implements AnagraficaApi {
 
         try {
             Profilo profilo = anagraficaService.getProfilo();
-            gdeService.saveEventOk(Costanti.OP_GET_PROFILO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), null, null, profilo, principal);
+            gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_PROFILO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value()), null, null, profilo, principal);
             return ResponseEntity.ok(profilo);
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_PROFILO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, null, null, principal);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_PROFILO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, null, null, principal);
             throw e;
         }
     }
@@ -118,12 +119,12 @@ public class AnagraficaController implements AnagraficaApi {
 
         try {
             ListaDomini result = anagraficaService.getDomini();
-            gdeService.saveEventOk(Costanti.OP_GET_DOMINI, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), null, null, result);
+            gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_DOMINI, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value()), null, null, result);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_DOMINI, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, null, null);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_DOMINI, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, null, null);
             throw e;
         }
     }
@@ -139,16 +140,16 @@ public class AnagraficaController implements AnagraficaApi {
 
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
-                gdeService.saveEventOk(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
-                        request, statusCode, idDominio, null, response.getBody());
+                gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
+                        request, statusCode), idDominio, null, response.getBody());
             } else {
-                gdeService.saveEventKo(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
-                        request, statusCode, null, idDominio, null);
+                gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
+                        request, statusCode), null, idDominio, null);
             }
             return response;
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_DOMINIO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, idDominio, null);
             throw e;
         }
     }
@@ -161,8 +162,8 @@ public class AnagraficaController implements AnagraficaApi {
             Optional<byte[]> logo = anagraficaService.getLogo(idDominio);
 
             if (logo.isEmpty() || logo.get() == null || logo.get().length == 0) {
-                gdeService.saveEventKo(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
-                        request, HttpStatus.NOT_FOUND.value(), null, idDominio, null);
+                gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
+                        request, HttpStatus.NOT_FOUND.value()), null, idDominio, null);
                 return ResponseEntity.notFound().build();
             }
 
@@ -176,8 +177,8 @@ public class AnagraficaController implements AnagraficaApi {
 
             ByteArrayResource resource = new ByteArrayResource(logoBytes);
 
-            gdeService.saveEventOk(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), idDominio, null, null);
+            gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value()), idDominio, null, null);
 
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.maxAge(Duration.ofSeconds(CACHE_LOGO)).cachePublic())
@@ -185,8 +186,8 @@ public class AnagraficaController implements AnagraficaApi {
                     .contentLength(logoBytes.length)
                     .body((Resource) resource);
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_LOGO, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, idDominio, null);
             throw e;
         }
     }
@@ -197,12 +198,12 @@ public class AnagraficaController implements AnagraficaApi {
 
         try {
             ListaTipiPendenza result = anagraficaService.getTipiPendenza(idDominio);
-            gdeService.saveEventOk(Costanti.OP_GET_TIPI_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), idDominio, null, result);
+            gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_TIPI_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value()), idDominio, null, result);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_TIPI_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_TIPI_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, idDominio, null);
             throw e;
         }
     }
@@ -218,16 +219,16 @@ public class AnagraficaController implements AnagraficaApi {
 
             int statusCode = response.getStatusCode().value();
             if (response.getStatusCode().is2xxSuccessful()) {
-                gdeService.saveEventOk(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
-                        request, statusCode, idDominio, null, response.getBody());
+                gdeService.saveEventOk(new GdeEventContext(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
+                        request, statusCode), idDominio, null, response.getBody());
             } else {
-                gdeService.saveEventKo(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
-                        request, statusCode, null, idDominio, null);
+                gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
+                        request, statusCode), null, idDominio, null);
             }
             return response;
         } catch (Exception e) {
-            gdeService.saveEventKo(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
-                    request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e, idDominio, null);
+            gdeService.saveEventKo(new GdeEventContext(Costanti.OP_GET_TIPO_PENDENZA, startTime, OffsetDateTime.now(),
+                    request, HttpStatus.INTERNAL_SERVER_ERROR.value()), e, idDominio, null);
             throw e;
         }
     }

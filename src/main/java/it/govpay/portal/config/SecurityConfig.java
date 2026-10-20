@@ -31,6 +31,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeEventContext;
 import it.govpay.portal.gde.service.GdeService;
 import it.govpay.portal.repository.VersamentoRepository;
 import it.govpay.portal.security.hardening.matcher.AvvisiRequestMatcher;
@@ -247,8 +248,8 @@ public class SecurityConfig {
         String tipoEvento = resolveOperationType(request.getRequestURI());
         if (tipoEvento != null) {
             OffsetDateTime now = OffsetDateTime.now();
-            gdeService.saveEventKo(tipoEvento, now, now,
-                    request, HttpStatus.FORBIDDEN.value(), exception, null, null);
+            gdeService.saveEventKo(new GdeEventContext(tipoEvento, now, now,
+                    request, HttpStatus.FORBIDDEN.value()), exception, null, null);
         }
     }
 

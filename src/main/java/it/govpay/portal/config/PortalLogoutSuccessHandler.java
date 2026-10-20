@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.json.JsonMapper;
 
 import it.govpay.portal.gde.Costanti;
+import it.govpay.portal.gde.service.GdeEventContext;
 import it.govpay.portal.gde.service.GdeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,8 +43,8 @@ public class PortalLogoutSuccessHandler implements LogoutSuccessHandler {
         if (urlID == null) {
             // GET /logout -> 200 OK
             log.info("Logout effettuato per l'utente [{}]", principal);
-            gdeService.saveEventOk(Costanti.OP_LOGOUT, now, OffsetDateTime.now(),
-                    request, HttpStatus.OK.value(), null, null, null, principal);
+            gdeService.saveEventOk(new GdeEventContext(Costanti.OP_LOGOUT, now, OffsetDateTime.now(),
+                    request, HttpStatus.OK.value()), null, null, null, principal);
             response.setStatus(HttpStatus.OK.value());
             return;
         }
@@ -73,8 +74,8 @@ public class PortalLogoutSuccessHandler implements LogoutSuccessHandler {
         String location = builder.build().toUri().toString();
 
         log.info("Logout con redirect effettuato per l'utente [{}], redirect verso [{}]", principal, location);
-        gdeService.saveEventOk(Costanti.OP_LOGOUT, now, OffsetDateTime.now(),
-                request, HttpStatus.SEE_OTHER.value(), null, null, null, principal);
+        gdeService.saveEventOk(new GdeEventContext(Costanti.OP_LOGOUT, now, OffsetDateTime.now(),
+                request, HttpStatus.SEE_OTHER.value()), null, null, null, principal);
         response.setStatus(HttpStatus.SEE_OTHER.value());
         response.setHeader("Location", location);
     }
