@@ -7,7 +7,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,14 +19,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import tools.jackson.databind.ObjectMapper;
-import it.govpay.portal.config.SpidUserDetails;
 
 import it.govpay.pendenze.client.api.PendenzeApi;
 import it.govpay.pendenze.client.model.NuovaPendenza;
@@ -107,17 +103,6 @@ class PendenzeControllerIntegrationTest {
         Hardening hardening = new Hardening();
         hardening.setAbilitato(false);
         return hardening;
-    }
-
-    /**
-     * Crea un'autenticazione SPID per i test.
-     */
-    private UsernamePasswordAuthenticationToken createSpidAuthentication(
-            String fiscalNumber, String name, String familyName, String email) {
-        SpidUserDetails spidUserDetails = new SpidUserDetails(fiscalNumber, name, familyName, email, null, null);
-        return new UsernamePasswordAuthenticationToken(
-                spidUserDetails, null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     @Test

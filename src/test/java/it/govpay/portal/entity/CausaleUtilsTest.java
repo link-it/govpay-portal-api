@@ -56,9 +56,9 @@ class CausaleUtilsTest {
         @Test
         @DisplayName("Formato 02 dovrebbe restituire CausaleSpezzoni")
         void format02ShouldReturnCausaleSpezzoni() throws UnsupportedEncodingException {
-            String base64_1 = Base64.getEncoder().encodeToString("Voce 1".getBytes(StandardCharsets.UTF_8));
-            String base64_2 = Base64.getEncoder().encodeToString("Voce 2".getBytes(StandardCharsets.UTF_8));
-            String encoded = "02 " + base64_1 + " " + base64_2;
+            String base64Voce1 = Base64.getEncoder().encodeToString("Voce 1".getBytes(StandardCharsets.UTF_8));
+            String base64Voce2 = Base64.getEncoder().encodeToString("Voce 2".getBytes(StandardCharsets.UTF_8));
+            String encoded = "02 " + base64Voce1 + " " + base64Voce2;
 
             Causale result = CausaleUtils.decode(encoded);
 
@@ -146,9 +146,9 @@ class CausaleUtilsTest {
         @Test
         @DisplayName("Formato 02 dovrebbe restituire primo spezzone")
         void format02ShouldReturnFirstSpezzone() {
-            String base64_1 = Base64.getEncoder().encodeToString("Prima voce".getBytes(StandardCharsets.UTF_8));
-            String base64_2 = Base64.getEncoder().encodeToString("Seconda voce".getBytes(StandardCharsets.UTF_8));
-            String encoded = "02 " + base64_1 + " " + base64_2;
+            String base64Voce1 = Base64.getEncoder().encodeToString("Prima voce".getBytes(StandardCharsets.UTF_8));
+            String base64Voce2 = Base64.getEncoder().encodeToString("Seconda voce".getBytes(StandardCharsets.UTF_8));
+            String encoded = "02 " + base64Voce1 + " " + base64Voce2;
 
             String result = CausaleUtils.getSimple(encoded);
 
