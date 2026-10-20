@@ -21,7 +21,8 @@ public class RegExpExtractor {
     private static final Logger log = LoggerFactory.getLogger(RegExpExtractor.class);
 
     private static final String ERROR_MSG_ESTRAZIONE_FALLITA = "Estrazione ''{0}'' fallita: {1}";
-    private static final String DEBUG_MSG_NESSUN_RISULTATO = "Estrazione ''{0}'' non ha trovato risultati";
+    private static final String DEBUG_MSG_NESSUN_RISULTATO = "Estrazione '{}' non ha trovato risultati";
+    private static final String ERROR_MSG_PATTERN_NON_VALIDO = "Pattern non valido: ";
 
     private final String content;
 
@@ -57,12 +58,12 @@ public class RegExpExtractor {
                 return matcher.group(0);
             }
 
-            log.debug(MessageFormat.format(DEBUG_MSG_NESSUN_RISULTATO, regex));
+            log.debug(DEBUG_MSG_NESSUN_RISULTATO, regex);
             return null;
 
         } catch (PatternSyntaxException e) {
             throw new TrasformazioneException(
-                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, "Pattern non valido: " + e.getMessage()), e);
+                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, ERROR_MSG_PATTERN_NON_VALIDO + e.getMessage()), e);
         } catch (Exception e) {
             throw new TrasformazioneException(
                     MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, e.getMessage()), e);
@@ -97,14 +98,14 @@ public class RegExpExtractor {
             }
 
             if (results.isEmpty()) {
-                log.debug(MessageFormat.format(DEBUG_MSG_NESSUN_RISULTATO, regex));
+                log.debug(DEBUG_MSG_NESSUN_RISULTATO, regex);
             }
 
             return results;
 
         } catch (PatternSyntaxException e) {
             throw new TrasformazioneException(
-                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, "Pattern non valido: " + e.getMessage()), e);
+                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, ERROR_MSG_PATTERN_NON_VALIDO + e.getMessage()), e);
         } catch (Exception e) {
             throw new TrasformazioneException(
                     MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, e.getMessage()), e);
@@ -139,12 +140,12 @@ public class RegExpExtractor {
                 return matcher.group(0);
             }
 
-            log.debug(MessageFormat.format(DEBUG_MSG_NESSUN_RISULTATO, regex));
+            log.debug(DEBUG_MSG_NESSUN_RISULTATO, regex);
             return null;
 
         } catch (PatternSyntaxException e) {
             throw new TrasformazioneException(
-                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, "Pattern non valido: " + e.getMessage()), e);
+                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, ERROR_MSG_PATTERN_NON_VALIDO + e.getMessage()), e);
         } catch (Exception e) {
             throw new TrasformazioneException(
                     MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, e.getMessage()), e);
@@ -178,14 +179,14 @@ public class RegExpExtractor {
             }
 
             if (results.isEmpty()) {
-                log.debug(MessageFormat.format(DEBUG_MSG_NESSUN_RISULTATO, regex));
+                log.debug(DEBUG_MSG_NESSUN_RISULTATO, regex);
             }
 
             return results;
 
         } catch (PatternSyntaxException e) {
             throw new TrasformazioneException(
-                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, "Pattern non valido: " + e.getMessage()), e);
+                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, ERROR_MSG_PATTERN_NON_VALIDO + e.getMessage()), e);
         } catch (Exception e) {
             throw new TrasformazioneException(
                     MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, e.getMessage()), e);
@@ -204,7 +205,7 @@ public class RegExpExtractor {
             return content.replaceAll(regex, replacement);
         } catch (PatternSyntaxException e) {
             throw new TrasformazioneException(
-                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, "Pattern non valido: " + e.getMessage()), e);
+                    MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, ERROR_MSG_PATTERN_NON_VALIDO + e.getMessage()), e);
         } catch (Exception e) {
             throw new TrasformazioneException(
                     MessageFormat.format(ERROR_MSG_ESTRAZIONE_FALLITA, regex, e.getMessage()), e);

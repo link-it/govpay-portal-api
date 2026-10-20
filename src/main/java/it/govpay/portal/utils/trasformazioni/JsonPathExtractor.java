@@ -54,7 +54,7 @@ public class JsonPathExtractor {
     /**
      * Legge il primo valore corrispondente al pattern.
      */
-    public String read(String pattern) throws TrasformazioneException, JsonPathNotFoundException {
+    public String read(String pattern) throws TrasformazioneException {
         List<String> results = readList(pattern);
         if (results != null && !results.isEmpty()) {
             return results.get(0);
@@ -65,7 +65,7 @@ public class JsonPathExtractor {
     /**
      * Legge tutti i valori corrispondenti al pattern come lista di stringhe.
      */
-    public List<String> readList(String pattern) throws TrasformazioneException, JsonPathNotFoundException {
+    public List<String> readList(String pattern) throws TrasformazioneException {
         if (jsonContent == null) {
             throw new TrasformazioneException(DOCUMENT_IS_NULL);
         }
@@ -96,7 +96,7 @@ public class JsonPathExtractor {
     /**
      * Legge il valore corrispondente al pattern come JsonNode.
      */
-    public JsonNode readAsNode(String pattern) throws TrasformazioneException, JsonPathNotFoundException {
+    public JsonNode readAsNode(String pattern) throws TrasformazioneException {
         if (jsonContent == null) {
             throw new TrasformazioneException(DOCUMENT_IS_NULL);
         }
