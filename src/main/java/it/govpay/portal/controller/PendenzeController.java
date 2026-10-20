@@ -31,6 +31,7 @@ import it.govpay.portal.security.hardening.ReCaptchaValidator;
 import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import it.govpay.portal.service.CreaPendenzaService;
+import it.govpay.portal.service.ParametriRichiesta;
 import it.govpay.portal.service.PendenzeService;
 import it.govpay.portal.service.StampeService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -93,9 +94,7 @@ public class PendenzeController {
                     requestBody,
                     idA2A,
                     idPendenza,
-                    headers,
-                    queryParams,
-                    pathParams);
+                    new ParametriRichiesta(headers, queryParams, pathParams));
 
             log.info("Pendenza creata con successo: numeroAvviso={}", pendenza.getNumeroAvviso());
 
