@@ -165,7 +165,7 @@ public class PendenzeController {
 
     @GetMapping(value = "/pendenze/{idDominio}/{numeroAvviso}/avviso",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_PDF_VALUE})
-    public ResponseEntity<?> getAvviso(
+    public ResponseEntity<Object> getAvviso(
             @PathVariable("idDominio") String idDominio,
             @PathVariable("numeroAvviso") String numeroAvviso,
             @RequestParam(value = "gRecaptchaResponse", required = false) String gRecaptchaResponse,
@@ -182,14 +182,14 @@ public class PendenzeController {
             MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
 
             if (requestedMediaType == null) {
-                ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                ResponseEntity<Object> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header richiesto: application/json o application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_AVVISO, startTime, OffsetDateTime.now(),
                         request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
-            ResponseEntity<?> response;
+            ResponseEntity<Object> response;
 
             if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
                 MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
@@ -199,7 +199,7 @@ public class PendenzeController {
                                 .contentType(MediaType.APPLICATION_PDF)
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                         "attachment; filename=\"avviso_" + numeroAvviso + ".pdf\"")
-                                .body(pdf))
+                                .body((Object) pdf))
                         .orElse(ResponseEntity.notFound().build());
             } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
                        MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
@@ -287,7 +287,7 @@ public class PendenzeController {
 
     @GetMapping(value = "/pendenze/{idDominio}/{numeroAvviso}/ricevuta",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_PDF_VALUE})
-    public ResponseEntity<?> getRicevuta(
+    public ResponseEntity<Object> getRicevuta(
             @PathVariable("idDominio") String idDominio,
             @PathVariable("numeroAvviso") String numeroAvviso,
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
@@ -300,14 +300,14 @@ public class PendenzeController {
             MediaType requestedMediaType = parseAcceptHeader(acceptHeader);
 
             if (requestedMediaType == null) {
-                ResponseEntity<?> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                ResponseEntity<Object> response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body("Accept header richiesto: application/json o application/pdf");
                 gdeService.saveEventKo(Costanti.OP_GET_RICEVUTA, startTime, OffsetDateTime.now(),
                         request, HttpStatus.NOT_ACCEPTABLE.value(), null, idDominio, null);
                 return response;
             }
 
-            ResponseEntity<?> response;
+            ResponseEntity<Object> response;
 
             if (MediaType.APPLICATION_PDF.equals(requestedMediaType) ||
                 MediaType.APPLICATION_PDF.isCompatibleWith(requestedMediaType)) {
@@ -317,7 +317,7 @@ public class PendenzeController {
                                 .contentType(MediaType.APPLICATION_PDF)
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                         "attachment; filename=\"ricevuta_" + numeroAvviso + ".pdf\"")
-                                .body(pdf))
+                                .body((Object) pdf))
                         .orElse(ResponseEntity.notFound().build());
             } else if (MediaType.APPLICATION_JSON.equals(requestedMediaType) ||
                        MediaType.APPLICATION_JSON.isCompatibleWith(requestedMediaType)) {
