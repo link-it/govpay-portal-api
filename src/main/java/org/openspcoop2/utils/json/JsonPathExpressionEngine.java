@@ -37,8 +37,8 @@ public class JsonPathExpressionEngine {
         }
 
         // Se è già una stringa semplice, la restituiamo
-        if (result instanceof String) {
-            return (String) result;
+        if (result instanceof String string) {
+            return string;
         }
 
         // Altrimenti convertiamo in JSON string

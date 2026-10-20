@@ -36,7 +36,7 @@ public class JSONUtils {
     /**
      * Converte una stringa JSON in un JsonNode.
      */
-    public JsonNode getAsNode(String jsonString) throws Exception {
+    public JsonNode getAsNode(String jsonString) {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
         }
@@ -46,7 +46,7 @@ public class JSONUtils {
     /**
      * Converte un array di byte JSON in un JsonNode.
      */
-    public JsonNode getAsNode(byte[] jsonBytes) throws Exception {
+    public JsonNode getAsNode(byte[] jsonBytes) {
         if (jsonBytes == null || jsonBytes.length == 0) {
             return null;
         }
@@ -56,7 +56,7 @@ public class JSONUtils {
     /**
      * Converte un InputStream JSON in un JsonNode.
      */
-    public JsonNode getAsNode(InputStream jsonStream) throws Exception {
+    public JsonNode getAsNode(InputStream jsonStream) {
         if (jsonStream == null) {
             return null;
         }
@@ -66,7 +66,7 @@ public class JSONUtils {
     /**
      * Deserializza una stringa JSON in un oggetto della classe specificata.
      */
-    public <T> T getAsObject(String jsonString, Class<T> clazz) throws Exception {
+    public <T> T getAsObject(String jsonString, Class<T> clazz) {
         if (jsonString == null || jsonString.isEmpty()) {
             return null;
         }
@@ -76,7 +76,7 @@ public class JSONUtils {
     /**
      * Deserializza un array di byte JSON in un oggetto della classe specificata.
      */
-    public <T> T getAsObject(byte[] jsonBytes, Class<T> clazz) throws Exception {
+    public <T> T getAsObject(byte[] jsonBytes, Class<T> clazz) {
         if (jsonBytes == null || jsonBytes.length == 0) {
             return null;
         }
@@ -100,7 +100,7 @@ public class JSONUtils {
     /**
      * Converte un JsonNode in stringa JSON.
      */
-    public String toString(JsonNode node) throws Exception {
+    public String toString(JsonNode node) {
         if (node == null) {
             return null;
         }
@@ -113,7 +113,7 @@ public class JSONUtils {
     /**
      * Converte un JsonNode in array di byte.
      */
-    public byte[] toByteArray(JsonNode node) throws Exception {
+    public byte[] toByteArray(JsonNode node) {
         if (node == null) {
             return null;
         }
