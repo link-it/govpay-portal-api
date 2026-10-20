@@ -66,6 +66,7 @@ public class RicevutaPdfPayloadMapper {
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static final String COD_UO_ENTE_CREDITORE = "EC";
+    private static final String DESCRIZIONE_VOCE_DEFAULT = "Voce di pagamento";
 
     /** {@code ReceiptOrganization.address}/{@code .location}: {@code maxLength: 70} nel contratto stampe. */
     private static final int MAX_NOME_INDIRIZZO = 70;
@@ -358,7 +359,7 @@ public class RicevutaPdfPayloadMapper {
                     ? voce.getSingoloImportoPagato().doubleValue() : 0.0;
             ReceiptItem item = new ReceiptItem();
             item.setDescription(voce.getCausaleVersamento() != null
-                    ? voce.getCausaleVersamento() : "Voce di pagamento");
+                    ? voce.getCausaleVersamento() : DESCRIZIONE_VOCE_DEFAULT);
             item.setIur(voce.getIdentificativoUnivocoRiscossione());
             item.setAmount(importo);
             item.setStatus(statusDaImporto(importo));
@@ -378,7 +379,7 @@ public class RicevutaPdfPayloadMapper {
                     ? transfer.getTransferAmount().doubleValue() : 0.0;
             ReceiptItem item = new ReceiptItem();
             item.setDescription(transfer.getRemittanceInformation() != null
-                    ? transfer.getRemittanceInformation() : "Voce di pagamento");
+                    ? transfer.getRemittanceInformation() : DESCRIZIONE_VOCE_DEFAULT);
             item.setIur(receipt.getReceiptId());
             item.setAmount(importo);
             item.setStatus(statusDaImporto(importo));
@@ -397,7 +398,7 @@ public class RicevutaPdfPayloadMapper {
                     ? transfer.getTransferAmount().doubleValue() : 0.0;
             ReceiptItem item = new ReceiptItem();
             item.setDescription(transfer.getRemittanceInformation() != null
-                    ? transfer.getRemittanceInformation() : "Voce di pagamento");
+                    ? transfer.getRemittanceInformation() : DESCRIZIONE_VOCE_DEFAULT);
             item.setIur(receipt.getReceiptId());
             item.setAmount(importo);
             item.setStatus(statusDaImporto(importo));
