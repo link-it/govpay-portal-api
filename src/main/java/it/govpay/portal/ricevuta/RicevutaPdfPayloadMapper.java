@@ -161,7 +161,7 @@ public class RicevutaPdfPayloadMapper {
             return "N/D";
         }
         boolean mezzanotteEsatta = d.getHour() == 0 && d.getMinute() == 0 && d.getSecond() == 0;
-        return mezzanotteEsatta ? d.format(DATE_DDMMYYYY) : d.format(DATETIME_DDMMYYYY_HHMM);
+        return d.format(mezzanotteEsatta ? DATE_DDMMYYYY : DATETIME_DDMMYYYY_HHMM);
     }
 
     private static String formatDataApplicativa(LocalDate d) {
@@ -318,7 +318,10 @@ public class RicevutaPdfPayloadMapper {
      * l'intestazione accorciata, non troncarlo farebbe rifiutare l'intero payload con un 400.
      */
     private static String tronca(String value, int max) {
-        if (value == null || value.length() <= max) {
+        if (value == null) {
+            return "";
+        }
+        if (value.length() <= max) {
             return value;
         }
         return value.substring(0, max);
