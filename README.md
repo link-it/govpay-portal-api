@@ -189,7 +189,7 @@ I driver JDBC non sono inclusi nel jar: vedi [Esecuzione](#esecuzione).
 |-----------|---------|-------------|
 | `management.server.port` | `9090` (variabile `MANAGEMENT_SERVER_PORT`) | Porta dedicata agli endpoint actuator, separata da quella del servizio |
 | `management.endpoints.web.base-path` | `/actuator` | Base path degli endpoint actuator |
-| `management.endpoints.web.exposure.include` | `health,prometheus,loggers` | Endpoint actuator esposti; `loggers` è comunque rifiutato dalla configurazione di sicurezza (vedi [Monitoraggio](#monitoraggio-1)) |
+| `management.endpoints.web.exposure.include` | `health,prometheus` | Endpoint actuator esposti; la configurazione di sicurezza autorizza solo questi due, ogni altro endpoint aggiunto qui risponde `403` |
 | `management.metrics.distribution.percentiles-histogram.http.server.requests` | `true` | Istogrammi delle latenze delle richieste ricevute, per aggregare i percentili tra più istanze |
 | `management.metrics.distribution.percentiles-histogram.http.client.requests` | `true` | Istogrammi delle latenze delle chiamate verso API Pendenze, Stampe e GDE |
 | `management.metrics.distribution.slo.http.server.requests` | `100ms,500ms,1s,2s,5s` | Soglie esplicite di latenza, compresa quella SLA pagoPA di 2s |
@@ -304,7 +304,7 @@ curl http://localhost:9090/actuator/health       # stato, usato anche dalle prob
 curl http://localhost:9090/actuator/prometheus   # metriche in formato Prometheus
 ```
 
-Gli endpoint non hanno autenticazione: la porta di management va tenuta su una rete interna, non raggiungibile dall'esterno. L'endpoint `loggers` è nell'elenco degli esposti, ma oggi la configurazione di sicurezza del servizio autorizza solo `health` e `prometheus` e lo rifiuta con `403`. Per cambiare i livelli di log si usa la console, che li salva nella tabella `configurazione`: il servizio li rilegge entro l'intervallo di refresh.
+Gli endpoint non hanno autenticazione: la porta di management va tenuta su una rete interna, non raggiungibile dall'esterno. Sulla porta del servizio gli stessi path rispondono `404`. L'endpoint `loggers` non è esposto, perché permetterebbe di cambiare i livelli di log senza autenticazione: i livelli si cambiano dalla console, che li salva nella tabella `configurazione`, e il servizio li rilegge entro l'intervallo di refresh (`govpay.logging.livelli-dinamici.*`).
 
 ## Architettura
 
