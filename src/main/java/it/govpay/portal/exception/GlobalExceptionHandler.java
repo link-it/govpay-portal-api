@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import it.govpay.portal.model.Errore;
 
@@ -37,6 +39,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Errore> handleNotFoundException(NotFoundException ex) {
+        Errore errore = new Errore();
+        errore.setCategoria(CATEGORIA_RICHIESTA);
+        errore.setCodice("404");
+        errore.setDescrizione("Risorsa non trovata");
+        errore.setDettaglio(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errore);
+    }
+
+    /**
+     * Path senza controller ne' risorsa statica (es. /actuator/health sulla porta
+     * applicativa): 404, non l'errore interno del gestore generico.
+     */
+    @ExceptionHandler({ NoResourceFoundException.class, NoHandlerFoundException.class })
+    public ResponseEntity<Errore> handleNoResourceFoundException(Exception ex) {
         Errore errore = new Errore();
         errore.setCategoria(CATEGORIA_RICHIESTA);
         errore.setCodice("404");

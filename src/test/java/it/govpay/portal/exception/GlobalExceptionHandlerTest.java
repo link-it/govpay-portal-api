@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import it.govpay.portal.model.Errore;
 
@@ -144,5 +147,18 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("503", response.getBody().getCodice());
+    }
+
+    @Test
+    @DisplayName("NoResourceFoundException (path non mappato) dovrebbe restituire 404")
+    void shouldReturn404ForNoResourceFoundException() {
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/actuator/health", "actuator/health");
+
+        ResponseEntity<Errore> response = handler.handleNoResourceFoundException(ex);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("404", response.getBody().getCodice());
+        assertEquals("RICHIESTA", response.getBody().getCategoria());
     }
 }
