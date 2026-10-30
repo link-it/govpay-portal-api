@@ -28,7 +28,6 @@
 
         <!-- OWASP config -->
         <owasp.falsePositives.dir>src/main/resources/owasp/falsePositives</owasp.falsePositives.dir>
-        <owasp>verify</owasp>
         <owasp.plugin.autoUpdate>true</owasp.plugin.autoUpdate>
         <owasp.plugin.failBuildOnCVSS>11</owasp.plugin.failBuildOnCVSS>
 
@@ -511,14 +510,8 @@
                     <formats>${owasp.format}</formats>
                     <outputDirectory>${owasp.output.dir}</outputDirectory>
                 </configuration>
-                <executions>
-                    <execution>
-                        <phase>${owasp}</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!-- Nessuna execution propria: l'analisi e' l'execution check-owasp di govpay-bom
+                     (fase ${owasp.phase}), che usa questa configurazione. -->
             </plugin>
         </plugins>
     </build>

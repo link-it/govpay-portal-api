@@ -81,10 +81,10 @@ mvn clean install -P jar     # fat jar, per esecuzione standalone e container (p
 mvn clean install -P war     # war, per il deploy su application server
 ```
 
-Il profilo sceglie il packaging; il risultato è in `target/govpay-portal-api.jar` o `target/govpay-portal-api.war`. La build genera i client delle API Pendenze e Stampe dalle specifiche OpenAPI, esegue i test e l'analisi OWASP Dependency-Check delle dipendenze. L'analisi è configurata due volte, nel `pom.xml` del progetto (proprietà `owasp`) e in `govpay-bom` (proprietà `owasp.phase`): per escluderla, per esempio in sviluppo, vanno disattivate entrambe:
+Il profilo sceglie il packaging; il risultato è in `target/govpay-portal-api.jar` o `target/govpay-portal-api.war`. La build genera i client delle API Pendenze e Stampe dalle specifiche OpenAPI, esegue i test e l'analisi OWASP Dependency-Check delle dipendenze (esecuzione `check-owasp` di `govpay-bom`, con i falsi positivi del progetto in `src/main/resources/owasp/falsePositives`); per escludere l'analisi OWASP, per esempio in sviluppo:
 
 ```bash
-mvn clean install -P jar -Dowasp=none -Dowasp.phase=none
+mvn clean install -P jar -Dowasp.phase=none
 ```
 
 ## Configurazione
