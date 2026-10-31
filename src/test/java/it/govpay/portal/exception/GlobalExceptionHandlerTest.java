@@ -5,8 +5,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.util.List;
+
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import it.govpay.portal.model.Errore;
 
@@ -144,5 +154,71 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("503", response.getBody().getCodice());
+    }
+
+    @Test
+    @DisplayName("NoResourceFoundException (path non mappato) dovrebbe restituire 404")
+    void shouldReturn404ForNoResourceFoundException() {
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/actuator/health", "actuator/health");
+
+        ResponseEntity<Errore> response = handler.handleNoResourceFoundException(ex);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("404", response.getBody().getCodice());
+        assertEquals("RICHIESTA", response.getBody().getCategoria());
+    }
+
+    @Test
+    @DisplayName("Metodo HTTP non supportato dovrebbe restituire 405 con l'header Allow")
+    void shouldReturn405ForMethodNotSupported() {
+        HttpRequestMethodNotSupportedException ex = new HttpRequestMethodNotSupportedException("PUT", List.of("GET"));
+
+        ResponseEntity<Errore> response = handler.handleMethodNotSupportedException(ex);
+
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("405", response.getBody().getCodice());
+        assertEquals("RICHIESTA", response.getBody().getCategoria());
+        assertTrue(response.getHeaders().getAllow().contains(HttpMethod.GET));
+    }
+
+    @Test
+    @DisplayName("Content-Type non supportato dovrebbe restituire 415")
+    void shouldReturn415ForMediaTypeNotSupported() {
+        HttpMediaTypeNotSupportedException ex = new HttpMediaTypeNotSupportedException("Content-Type 'text/plain' non supportato");
+
+        ResponseEntity<Errore> response = handler.handleMediaTypeNotSupportedException(ex);
+
+        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("415", response.getBody().getCodice());
+    }
+
+    @Test
+    @DisplayName("Parametro obbligatorio mancante dovrebbe restituire 400")
+    void shouldReturn400ForMissingParameter() {
+        MissingServletRequestParameterException ex = new MissingServletRequestParameterException("idDominio", "String");
+
+        ResponseEntity<Errore> response = handler.handleRichiestaNonValida(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("400", response.getBody().getCodice());
+        assertTrue(response.getBody().getDettaglio().contains("idDominio"));
+    }
+
+    @Test
+    @DisplayName("Body non leggibile dovrebbe restituire 400 senza esporre il messaggio del parser")
+    void shouldReturn400ForUnreadableBody() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("JSON parse error: dettaglio interno",
+                new MockHttpInputMessage(new byte[0]));
+
+        ResponseEntity<Errore> response = handler.handleRichiestaNonValida(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("400", response.getBody().getCodice());
+        assertEquals("Body della richiesta non leggibile", response.getBody().getDettaglio());
     }
 }

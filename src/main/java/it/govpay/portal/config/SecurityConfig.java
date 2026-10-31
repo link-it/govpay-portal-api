@@ -196,8 +196,9 @@ public class SecurityConfig {
                 .requestMatchers("/index.html", "/*.png", "/*.css", "/*.js").permitAll()
                 .requestMatchers("/*.css.map", "/*.js.map").permitAll()
                 // Il matcher e' per path (non per porta): sulla porta applicativa gli
-                // endpoint actuator non sono comunque mappati (404), l'esposizione
-                // effettiva avviene solo sulla porta management dedicata.
+                // endpoint actuator non sono mappati e rispondono 404 (GlobalExceptionHandler),
+                // l'esposizione effettiva avviene solo sulla porta management dedicata.
+                // Sono autorizzati solo health e prometheus, gli unici esposti via web.
                 .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
 
