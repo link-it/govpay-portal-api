@@ -507,8 +507,6 @@
                     <ossIndexUsername>${ossIndexUsername}</ossIndexUsername>
                     <ossIndexPassword>${ossIndexPassword}</ossIndexPassword>
                     <dataDirectory>${dataDirectory}</dataDirectory>
-                    <formats>${owasp.format}</formats>
-                    <outputDirectory>${owasp.output.dir}</outputDirectory>
                 </configuration>
                 <!-- Nessuna execution propria: l'analisi e' l'execution check-owasp di govpay-bom
                      (fase ${owasp.phase}), che usa questa configurazione. -->
