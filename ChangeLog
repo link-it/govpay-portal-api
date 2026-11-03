@@ -1,3 +1,10 @@
+2026-11-03  Giuliano Pintori <pintori@link.it>
+
+	* [GDE] Senza connettore GDE il log non riporta piu' un ERROR a ogni
+	richiesta. Il controllo "GDE abilitato" usava ConnettoreService.getConnettore,
+	che per un connettore assente scrive un ERROR prima di lanciare l'eccezione;
+	ora usa ConnettoreService.isAbilitato, che non lancia eccezioni.
+
 2026-09-29  Giuliano Pintori <pintori@link.it>
 
 	* [Fix] Il contesto non parte contro le anagrafiche nuove di govpay-common.
