@@ -47,14 +47,15 @@ public class GdeService extends AbstractGdeService {
         return connettoreService.getRestTemplate(ConfigurazioneKeys.COD_CONNETTORE_GDE);
     }
 
+    /**
+     * Il GDE e' opzionale: senza connettore gli eventi non si inviano. Il
+     * controllo usa {@link ConnettoreService#isAbilitato(String)}, che non lancia
+     * eccezioni: getConnettore, chiamato a ogni richiesta, scriveva un ERROR
+     * quando il connettore non c'e'.
+     */
     @Override
     public boolean isAbilitato() {
-        try {
-            return connettoreService.getConnettore(ConfigurazioneKeys.COD_CONNETTORE_GDE).isAbilitato();
-        } catch (IllegalArgumentException e) {
-            log.debug("Connettore GDE non configurato: {}", e.getMessage());
-            return false;
-        }
+        return connettoreService.isAbilitato(ConfigurazioneKeys.COD_CONNETTORE_GDE);
     }
 
     @Override
