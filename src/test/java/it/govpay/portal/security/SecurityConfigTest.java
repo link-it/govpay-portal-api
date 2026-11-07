@@ -493,4 +493,24 @@ class SecurityConfigTest {
                     .andExpect(status().isForbidden());
         }
     }
+    @Nested
+    @DisplayName("Cookie XSRF-TOKEN")
+    class CsrfCookieTests {
+
+        @Test
+        @DisplayName("Il cookie XSRF-TOKEN ha SameSite=Lax ed e' leggibile da JavaScript")
+        void csrfCookieShouldHaveSameSiteLax() throws Exception {
+            MvcResult result = mockMvc.perform(get("/domini")
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andReturn();
+
+            // SameSite e' un attributo del Cookie: MockHttpServletResponse non lo serializza
+            // nell'header Set-Cookie, l'header reale e' verificato in CookieSameSiteTest.
+            Cookie cookie = result.getResponse().getCookie("XSRF-TOKEN");
+            assertNotNull(cookie, "Cookie XSRF-TOKEN assente");
+            assertEquals("Lax", cookie.getAttribute("SameSite"));
+            // HttpOnly assente per scelta: Angular legge il cookie per l'header X-XSRF-TOKEN
+            assertFalse(cookie.isHttpOnly(), "XSRF-TOKEN non deve essere HttpOnly");
+        }
+    }
 }
