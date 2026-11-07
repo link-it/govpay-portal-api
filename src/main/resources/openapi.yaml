@@ -13,8 +13,8 @@ info:
     name: GovPay Support
 
 servers:
-    - url: '{hostname}/govpay-portal-api/v1'
-      description: API unica per i servizi portale
+    - url: '{hostname}'
+      description: 'API unica per i servizi portale. Il servizio risponde alla radice; un eventuale prefisso (es. /govpay-portal-api/v1) e'' aggiunto dal reverse proxy'
       variables:
         hostname:
           default: https://example.com

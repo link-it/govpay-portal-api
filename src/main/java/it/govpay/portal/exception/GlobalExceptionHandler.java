@@ -1,9 +1,20 @@
 package it.govpay.portal.exception;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import it.govpay.portal.model.Errore;
 
@@ -43,6 +54,72 @@ public class GlobalExceptionHandler {
         errore.setDescrizione("Risorsa non trovata");
         errore.setDettaglio(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errore);
+    }
+
+    /**
+     * Path senza controller ne' risorsa statica (es. /actuator/health sulla porta
+     * applicativa): 404, non l'errore interno del gestore generico.
+     */
+    @ExceptionHandler({ NoResourceFoundException.class, NoHandlerFoundException.class })
+    public ResponseEntity<Errore> handleNoResourceFoundException(Exception ex) {
+        Errore errore = new Errore();
+        errore.setCategoria(CATEGORIA_RICHIESTA);
+        errore.setCodice("404");
+        errore.setDescrizione("Risorsa non trovata");
+        errore.setDettaglio(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errore);
+    }
+
+    /**
+     * Errori del client rilevati da Spring MVC prima di arrivare al controller:
+     * metodo HTTP non supportato. Senza questo gestore finirebbero nel gestore
+     * generico, con 503.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Errore> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        Errore errore = new Errore();
+        errore.setCategoria(CATEGORIA_RICHIESTA);
+        errore.setCodice("405");
+        errore.setDescrizione("Metodo non consentito");
+        errore.setDettaglio(ex.getMessage());
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED);
+        if (ex.getSupportedHttpMethods() != null) {
+            builder.allow(ex.getSupportedHttpMethods().toArray(new HttpMethod[0]));
+        }
+        return builder.body(errore);
+    }
+
+    /** Content-Type della richiesta non supportato. */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Errore> handleMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
+        Errore errore = new Errore();
+        errore.setCategoria(CATEGORIA_RICHIESTA);
+        errore.setCodice("415");
+        errore.setDescrizione("Tipo di contenuto non supportato");
+        errore.setDettaglio(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(errore);
+    }
+
+    /**
+     * Parametri, header o body mancanti o non validi: 400.
+     */
+    @ExceptionHandler({
+        MissingServletRequestParameterException.class,
+        MissingRequestHeaderException.class,
+        MethodArgumentTypeMismatchException.class,
+        HttpMessageNotReadableException.class,
+        MethodArgumentNotValidException.class,
+        HandlerMethodValidationException.class
+    })
+    public ResponseEntity<Errore> handleRichiestaNonValida(Exception ex) {
+        Errore errore = new Errore();
+        errore.setCategoria(CATEGORIA_RICHIESTA);
+        errore.setCodice("400");
+        errore.setDescrizione("Richiesta non valida");
+        errore.setDettaglio(ex instanceof HttpMessageNotReadableException
+                ? "Body della richiesta non leggibile"
+                : ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errore);
     }
 
     @ExceptionHandler(BadRequestException.class)

@@ -12,6 +12,20 @@
 	XSRF-TOKEN resta senza HttpOnly perche' il frontend Angular lo legge per
 	l'header X-XSRF-TOKEN: l'alert ZAP 10010 e' un falso positivo accettato.
 
+2026-11-03  Giuliano Pintori <pintori@link.it>
+
+	* [CI] Il report OWASP Dependency-Check torna negli artifact della build e
+	nello zip dei report di release. La configurazione del plugin nel pom
+	scriveva il report nella cartella indicata da owasp.output.dir
+	(./dependency-check-report, passata dal workflow), mentre l'upload lo
+	cerca in target/. Tolti <formats> e <outputDirectory>: valgono format ALL
+	e la cartella target/ di govpay-bom, come negli altri progetti.
+
+	* [GDE] Senza connettore GDE il log non riporta piu' un ERROR a ogni
+	richiesta. Il controllo "GDE abilitato" usava ConnettoreService.getConnettore,
+	che per un connettore assente scrive un ERROR prima di lanciare l'eccezione;
+	ora usa ConnettoreService.isAbilitato, che non lancia eccezioni.
+
 2026-09-29  Giuliano Pintori <pintori@link.it>
 
 	* [Fix] Il contesto non parte contro le anagrafiche nuove di govpay-common.

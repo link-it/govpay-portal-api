@@ -110,8 +110,8 @@ jobs:
         OSS_INDEX_USER: ${{ vars.OSS_INDEX_USER }}
         OSS_INDEX_PASSWORD: ${{ secrets.OSS_INDEX_PASSWORD }}
         # Se la cache è esatta (stessa giornata) skippa l'update NVD
-        NOUPDATE_FLAG: ${{ steps.owasp-cache.outputs.cache-hit == 'true' && '-DautoUpdate=false' || '' }}
-      run: mvn install -P jar -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DossIndexUsername=$OSS_INDEX_USER -DossIndexPassword=$OSS_INDEX_PASSWORD -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report $NOUPDATE_FLAG
+        NOUPDATE_FLAG: ${{ steps.owasp-cache.outputs.cache-hit == 'true' && '-Dowasp.plugin.autoUpdate=false' || '' }}
+      run: mvn install -P jar -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DossIndexUsername=$OSS_INDEX_USER -DossIndexPassword=$OSS_INDEX_PASSWORD -DdataDirectory=.dependency-check/data $NOUPDATE_FLAG
 
     - name: Show JaCoCo report location and Zip JaCoCo HTML report
       run: |
@@ -128,7 +128,7 @@ jobs:
         mvn dependency:copy-dependencies -DoutputDirectory=target/dependency
 
     - name: SonarCloud Scan
-      uses: SonarSource/sonarqube-scan-action@v5
+      uses: SonarSource/sonarqube-scan-action@v8
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: https://sonarcloud.io
