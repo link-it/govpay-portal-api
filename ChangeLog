@@ -1,3 +1,17 @@
+2026-11-07  Giuliano Pintori <pintori@link.it>
+
+	* [Security] SameSite=Lax sui cookie XSRF-TOKEN e JSESSIONID (#34).
+	La scansione OWASP ZAP del portale segnalava il cookie XSRF-TOKEN senza
+	attributo SameSite (alert 10054): il comportamento dipendeva dal browser.
+	SecurityConfig imposta ora SameSite=Lax con setCookieCustomizer, e
+	server.servlet.session.cookie.same-site=lax fa lo stesso su JSESSIONID.
+	Lax e non Strict: il ritorno da pagoPA e dal login SPID e' una navigazione
+	cross-site di primo livello e deve portare i cookie. Nel deploy war su Tomcat
+	esterno l'attributo di JSESSIONID va configurato nel container
+	(<CookieProcessor sameSiteCookies="lax"/> in context.xml).
+	XSRF-TOKEN resta senza HttpOnly perche' il frontend Angular lo legge per
+	l'header X-XSRF-TOKEN: l'alert ZAP 10010 e' un falso positivo accettato.
+
 2026-09-29  Giuliano Pintori <pintori@link.it>
 
 	* [Fix] Il contesto non parte contro le anagrafiche nuove di govpay-common.

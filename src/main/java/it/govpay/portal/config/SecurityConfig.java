@@ -49,6 +49,7 @@ public class SecurityConfig {
 
     private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
     private static final String LOGOUT_PATH = "/logout";
+    static final String CSRF_COOKIE_SAME_SITE = "Lax";
 
     private final SecurityProperties securityProperties;
     private final ConfigurazioneService configurazioneService;
@@ -134,6 +135,10 @@ public class SecurityConfig {
         // Il token CSRF non e' un segreto di sessione: anche se letto via XSS, non permette
         // di eseguire CSRF perche' l'attaccante non puo' generare richieste cross-origin valide.
         CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse(); // NOSONAR - HttpOnly=false intenzionale per SPA
+        // SameSite esplicito: senza attributo il comportamento dipende dal browser.
+        // Lax e non Strict: il ritorno da pagoPA e dal login SPID e' una navigazione
+        // cross-site di primo livello (GET), con Lax il cookie viaggia anche li'.
+        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.sameSite(CSRF_COOKIE_SAME_SITE));
         // Handler per supportare protezione BREACH
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName("_csrf");
