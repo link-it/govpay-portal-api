@@ -1,5 +1,24 @@
 2026-11-08  Giuliano Pintori <pintori@link.it>
 
+	* [Stampe] Avviso: creditor.pay_on_website da configurazione (#32).
+	govpay-stampe-api (link-it/govpay-stampe-api#47) stampa "oppure sul sito di
+	<ente>, ..." solo con pay_on_website a true. Nuova property
+	govpay.stampe.pay-on-website (variabile GOVPAY_API_STAMPE_PAY_ON_WEBSITE
+	nell'immagine Docker), default false: va attivata quando e' in esercizio il
+	portale di pagamento dell'ente collegato a queste API.
+
+	* [Stampe] Loghi di avviso e ricevuta come byte dell'immagine (#33).
+	govpay-stampe-api (link-it/govpay-stampe-api#38) riceve ora creditor_logo e
+	pagopa_logo della ricevuta come format: binary e risponde 400 a un logo
+	mandato come URI data. Copia di govpay-stampe.yaml allineata a quella del
+	servizio; RicevutaPdfPayloadMapper manda i byte dell'immagine del logo
+	dell'ente (decodificati da DominioLogoCodec) e del logo pagoPA della
+	configurazione, che resta scritto come URI data o base64. Logo dell'ente
+	assente: campo vuoto. Anche first_logo dell'avviso passa ora i byte
+	dell'immagine invece del testo base64 salvato in colonna. Rimossi
+	DominioLogoCodec.toDataUri e LogoMimeDetector: il tipo dell'immagine lo
+	riconosce govpay-stampe-api dal contenuto.
+
 	* [Dipendenze] Swagger UI 5.34.1 (link-it/govpay-bom#7).
 	govpay-bom porta swagger-ui alla 5.34.1, con DOMPurify 3.4.17, per
 	CVE-2026-116802, CVE-2026-116803 e CVE-2026-116804. springdoc compone

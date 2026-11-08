@@ -3,8 +3,11 @@ package it.govpay.portal.mapper;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import it.govpay.portal.config.GovPayStampeClientConfig;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Stazione;
@@ -22,12 +26,16 @@ import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.stampe.client.model.Languages;
 import it.govpay.stampe.client.model.PaymentNotice;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class StampeMapperTest {
 
     @Mock
     private DominioLogoRepository dominioLogoRepository;
+
+    private final GovPayStampeClientConfig stampeConfig = new GovPayStampeClientConfig();
 
     private StampeMapper stampeMapper;
 
@@ -37,7 +45,7 @@ class StampeMapperTest {
 
     @BeforeEach
     void setUp() {
-        stampeMapper = new StampeMapper(dominioLogoRepository);
+        stampeMapper = new StampeMapper(dominioLogoRepository, stampeConfig);
 
         stazione = Stazione.builder()
                 .id(1L)
@@ -199,5 +207,78 @@ class StampeMapperTest {
 
             assertNull(notice.getCreditor().getCbillCode());
         }
+    }
+
+    @Nested
+    @DisplayName("creditor.pay_on_website (issue #32)")
+    class PayOnWebsiteTests {
+
+        @Test
+        @DisplayName("Senza configurazione pay_on_website e' false")
+        void payOnWebsiteFalseDiDefault() {
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals(Boolean.FALSE, notice.getCreditor().getPayOnWebsite());
+            assertFalse(json(notice).get("creditor").get("pay_on_website").asBoolean());
+        }
+
+        @Test
+        @DisplayName("Con govpay.stampe.pay-on-website=true pay_on_website e' true")
+        void payOnWebsiteTrueDaConfigurazione() {
+            stampeConfig.setPayOnWebsite(true);
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals(Boolean.TRUE, notice.getCreditor().getPayOnWebsite());
+            assertTrue(json(notice).get("creditor").get("pay_on_website").asBoolean());
+        }
+    }
+
+    @Nested
+    @DisplayName("first_logo come byte dell'immagine (issue #33)")
+    class FirstLogoTests {
+
+        private final byte[] immagine = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3};
+
+        @Test
+        @DisplayName("Il logo salvato come testo base64 arriva come byte dell'immagine")
+        void logoDecodificatoDallaColonna() {
+            byte[] inColonna = Base64.getEncoder().encodeToString(immagine).getBytes(StandardCharsets.UTF_8);
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.of(inColonna));
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertArrayEquals(immagine, notice.getFirstLogo());
+            // In JSON: base64 dell'immagine, senza prefisso data:
+            assertEquals(Base64.getEncoder().encodeToString(immagine), json(notice).get("first_logo").asString());
+        }
+
+        @Test
+        @DisplayName("Il logo salvato come URI data arriva come byte dell'immagine")
+        void logoDecodificatoDaUriData() {
+            String uriData = "data:image/png;base64," + Base64.getEncoder().encodeToString(immagine);
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901"))
+                    .thenReturn(Optional.of(uriData.getBytes(StandardCharsets.UTF_8)));
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertArrayEquals(immagine, notice.getFirstLogo());
+        }
+
+        @Test
+        @DisplayName("Senza logo si usa il PNG segnaposto")
+        void senzaLogoUsaSegnaposto() {
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.empty());
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals((byte) 0x89, notice.getFirstLogo()[0]);
+            assertEquals('P', notice.getFirstLogo()[1]);
+        }
+    }
+
+    private static JsonNode json(PaymentNotice notice) {
+        JsonMapper mapper = JsonMapper.builder().build();
+        return mapper.readTree(mapper.writeValueAsString(notice));
     }
 }

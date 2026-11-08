@@ -9,7 +9,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,8 @@ import it.govpay.stampe.client.model.ReceiptItem;
 import it.govpay.stampe.client.model.ReceiptItemStatus;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Verifica che {@link RicevutaPdfPayloadMapper} legga data operazione/applicativa, soggetto
@@ -48,6 +52,56 @@ class RicevutaPdfPayloadMapperTest {
     private final GovPayStampeClientConfig stampeConfig = new GovPayStampeClientConfig();
     private final RicevutaPdfPayloadMapper mapper =
             new RicevutaPdfPayloadMapper(uoRepository, dominioLogoRepository, stampeConfig);
+
+    // ---------- Loghi come byte dell'immagine (issue #33) ----------
+
+    private static final byte[] IMMAGINE = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 4, 5, 6};
+
+    @Test
+    void creditorLogoMandatoComeByteDellImmagine() throws JAXBException {
+        byte[] inColonna = Base64.getEncoder().encodeToString(IMMAGINE).getBytes(StandardCharsets.UTF_8);
+        when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.of(inColonna));
+
+        Receipt receipt = mapper.toReceipt(rptSanp230(true));
+
+        assertThat(receipt.getCreditorLogo()).isEqualTo(IMMAGINE);
+        JsonNode json = json(receipt);
+        assertThat(json.get("creditor_logo").asString()).isEqualTo(Base64.getEncoder().encodeToString(IMMAGINE));
+        assertThat(json.get("creditor_logo").asString()).doesNotStartWith("data:");
+    }
+
+    @Test
+    void creditorLogoAssenteMandatoVuoto() throws JAXBException {
+        when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.empty());
+
+        Receipt receipt = mapper.toReceipt(rptSanp230(true));
+
+        assertThat(receipt.getCreditorLogo()).isEmpty();
+        // campo obbligatorio nel contratto: presente, vuoto
+        assertThat(json(receipt).get("creditor_logo").asString()).isEmpty();
+    }
+
+    @Test
+    void pagopaLogoDallaConfigurazioneUriDataMandatoComeByte() throws JAXBException {
+        stampeConfig.getLogo().setPagopa("data:image/png;base64," + Base64.getEncoder().encodeToString(IMMAGINE));
+
+        Receipt receipt = mapper.toReceipt(rptSanp230(true));
+
+        assertThat(receipt.getPagopaLogo()).isEqualTo(IMMAGINE);
+        assertThat(json(receipt).get("pagopa_logo").asString()).isEqualTo(Base64.getEncoder().encodeToString(IMMAGINE));
+    }
+
+    @Test
+    void pagopaLogoNonConfiguratoMandatoVuoto() throws JAXBException {
+        Receipt receipt = mapper.toReceipt(rptSanp230(true));
+
+        assertThat(receipt.getPagopaLogo()).isEmpty();
+    }
+
+    private static JsonNode json(Receipt receipt) {
+        JsonMapper jsonMapper = JsonMapper.builder().build();
+        return jsonMapper.readTree(jsonMapper.writeValueAsString(receipt));
+    }
 
     // ---------- SANP_230 (ctRicevutaTelematica) ----------
 

@@ -135,6 +135,12 @@ if [ -n "${GOVPAY_API_STAMPE_URL}" ]; then
     log_info "GovPay API Stampe URL: ${GOVPAY_API_STAMPE_URL}"
 fi
 
+# Avvisi pagabili anche dal sito dell'ente (portale di pagamento collegato)
+if [ -n "${GOVPAY_API_STAMPE_PAY_ON_WEBSITE}" ]; then
+    export GOVPAY_STAMPE_PAYONWEBSITE="${GOVPAY_API_STAMPE_PAY_ON_WEBSITE}"
+    log_info "GovPay API Stampe pay_on_website: ${GOVPAY_API_STAMPE_PAY_ON_WEBSITE}"
+fi
+
 ##############################################################################
 # Configurazione porta server
 ##############################################################################
