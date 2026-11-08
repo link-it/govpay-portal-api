@@ -1,3 +1,17 @@
+2026-11-08  Giuliano Pintori <pintori@link.it>
+
+	* [Stampe] Loghi di avviso e ricevuta come byte dell'immagine (#33).
+	govpay-stampe-api (link-it/govpay-stampe-api#38) riceve ora creditor_logo e
+	pagopa_logo della ricevuta come format: binary e risponde 400 a un logo
+	mandato come URI data. Copia di govpay-stampe.yaml allineata a quella del
+	servizio; RicevutaPdfPayloadMapper manda i byte dell'immagine del logo
+	dell'ente (decodificati da DominioLogoCodec) e del logo pagoPA della
+	configurazione, che resta scritto come URI data o base64. Logo dell'ente
+	assente: campo vuoto. Anche first_logo dell'avviso passa ora i byte
+	dell'immagine invece del testo base64 salvato in colonna. Rimossi
+	DominioLogoCodec.toDataUri e LogoMimeDetector: il tipo dell'immagine lo
+	riconosce govpay-stampe-api dal contenuto.
+
 2026-11-07  Giuliano Pintori <pintori@link.it>
 
 	* [Security] SameSite=Lax sui cookie XSRF-TOKEN e JSESSIONID (#34).

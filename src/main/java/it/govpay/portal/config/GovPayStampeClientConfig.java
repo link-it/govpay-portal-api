@@ -19,6 +19,7 @@ public class GovPayStampeClientConfig {
 
     @Data
     public static class Logo {
+        /** Logo pagoPA delle ricevute: testo base64 dell'immagine, anche come URI data. */
         private String pagopa;
     }
 

@@ -134,7 +134,7 @@ Il reCAPTCHA non ha proprietà proprie: abilitazione, chiavi, URL di verifica, n
 | `govpay.pendenze.username` | - | Utente HTTP Basic dell'applicazione GovPay usata per creare le pendenze |
 | `govpay.pendenze.password` | - | Password dell'applicazione |
 | `govpay.stampe.base-url` | - | URL base di govpay-stampe-api, es. `http://govpay-stampe-api:8080/api/v1` |
-| `govpay.stampe.logo.pagopa` | logo pagoPA (data URI PNG) | Logo pagoPA stampato sulle ricevute, come data URI `data:image/png;base64,...` |
+| `govpay.stampe.logo.pagopa` | logo pagoPA (data URI PNG) | Logo pagoPA stampato sulle ricevute: testo base64 dell'immagine, anche come data URI `data:image/png;base64,...`. A govpay-stampe-api arrivano i byte dell'immagine |
 
 ### Giornale degli eventi e connettori
 

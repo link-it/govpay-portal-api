@@ -3,8 +3,11 @@ package it.govpay.portal.mapper;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +25,8 @@ import it.govpay.portal.model.LinguaSecondaria;
 import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.stampe.client.model.Languages;
 import it.govpay.stampe.client.model.PaymentNotice;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class StampeMapperTest {
@@ -199,5 +204,53 @@ class StampeMapperTest {
 
             assertNull(notice.getCreditor().getCbillCode());
         }
+    }
+
+    @Nested
+    @DisplayName("first_logo come byte dell'immagine (issue #33)")
+    class FirstLogoTests {
+
+        private final byte[] immagine = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3};
+
+        @Test
+        @DisplayName("Il logo salvato come testo base64 arriva come byte dell'immagine")
+        void logoDecodificatoDallaColonna() {
+            byte[] inColonna = Base64.getEncoder().encodeToString(immagine).getBytes(StandardCharsets.UTF_8);
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.of(inColonna));
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertArrayEquals(immagine, notice.getFirstLogo());
+            // In JSON: base64 dell'immagine, senza prefisso data:
+            assertEquals(Base64.getEncoder().encodeToString(immagine), json(notice).get("first_logo").asString());
+        }
+
+        @Test
+        @DisplayName("Il logo salvato come URI data arriva come byte dell'immagine")
+        void logoDecodificatoDaUriData() {
+            String uriData = "data:image/png;base64," + Base64.getEncoder().encodeToString(immagine);
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901"))
+                    .thenReturn(Optional.of(uriData.getBytes(StandardCharsets.UTF_8)));
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertArrayEquals(immagine, notice.getFirstLogo());
+        }
+
+        @Test
+        @DisplayName("Senza logo si usa il PNG segnaposto")
+        void senzaLogoUsaSegnaposto() {
+            when(dominioLogoRepository.findLogoByCodDominio("12345678901")).thenReturn(Optional.empty());
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals((byte) 0x89, notice.getFirstLogo()[0]);
+            assertEquals('P', notice.getFirstLogo()[1]);
+        }
+    }
+
+    private static JsonNode json(PaymentNotice notice) {
+        JsonMapper mapper = JsonMapper.builder().build();
+        return mapper.readTree(mapper.writeValueAsString(notice));
     }
 }

@@ -91,7 +91,7 @@ public class RicevutaPdfPayloadMapper {
 
         Receipt receipt = new Receipt();
         receipt.setCreditorLogo(creditorLogoOf(d));
-        receipt.setPagopaLogo(stampeConfig.getLogo().getPagopa());
+        receipt.setPagopaLogo(DominioLogoCodec.decode(stampeConfig.getLogo().getPagopa()));
         receipt.setPaymentSubject(tronca(v != null ? causaleOf(v) : "", MAX_OGGETTO));
         receipt.setOrganization(mapOrganization(d));
         receipt.setPayer(dati.payer());
@@ -112,13 +112,19 @@ public class RicevutaPdfPayloadMapper {
         return causale != null ? causale : "";
     }
 
-    private String creditorLogoOf(Dominio d) {
+    /**
+     * Byte dell'immagine, non URI data: govpay-stampe-api riconosce il tipo dal contenuto
+     * e risponde 400 a un logo mandato come URI data. Il campo e' obbligatorio nel contratto:
+     * senza logo si manda un array vuoto (in JSON {@code ""}), che il servizio tratta come
+     * logo assente.
+     */
+    private byte[] creditorLogoOf(Dominio d) {
         if (d == null) {
-            return "";
+            return new byte[0];
         }
         return dominioLogoRepository.findLogoByCodDominio(d.getCodDominio())
-                .map(DominioLogoCodec::toDataUri)
-                .orElse("");
+                .map(DominioLogoCodec::decode)
+                .orElseGet(() -> new byte[0]);
     }
 
     private ReceiptOrganization mapOrganization(Dominio d) {

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Component;
 
+import it.govpay.portal.dominio.DominioLogoCodec;
 import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.portal.entity.CausaleUtils;
 import it.govpay.portal.entity.Dominio;
@@ -84,8 +85,10 @@ public class StampeMapper {
         }
         notice.setFull(fullAmount);
 
-        // Logo del creditore
+        // Logo del creditore: byte dell'immagine, non il testo base64 salvato in colonna
         byte[] logoBytes = dominioLogoRepository.findLogoByCodDominio(dominio.getCodDominio())
+                .map(DominioLogoCodec::decode)
+                .filter(bytes -> bytes.length > 0)
                 .orElseGet(this::getDefaultLogoBytes);
         notice.setFirstLogo(logoBytes);
 

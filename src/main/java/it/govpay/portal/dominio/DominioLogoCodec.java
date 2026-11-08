@@ -7,7 +7,8 @@ import java.util.Base64;
  * Incapsula il formato con cui il logo del dominio e' persistito nella colonna
  * {@code domini.logo}: non i byte grezzi dell'immagine, ma i byte UTF-8 del suo
  * testo Base64. E' l'unico punto che conosce questa codifica, cosi' che i punti
- * di lettura lavorino sempre con i byte grezzi dell'immagine.
+ * di lettura lavorino sempre con i byte grezzi dell'immagine (anche le stampe:
+ * govpay-stampe-api riceve i loghi come byte dell'immagine, non come data-URI).
  */
 public final class DominioLogoCodec {
 
@@ -27,19 +28,15 @@ public final class DominioLogoCodec {
     }
 
     /**
-     * Costruisce il data-URI per il payload delle stampe riusando la stringa
-     * Base64 gia' presente in colonna e ricavando il content-type dai magic bytes
-     * dell'immagine decodificata.
+     * Decodifica un logo scritto come testo Base64, con o senza prefisso data-URI
+     * ({@code data:...;base64,}), nei byte grezzi dell'immagine. Usato per il logo
+     * pagoPA letto dalla configurazione.
      */
-    public static String toDataUri(byte[] stored) {
-        if (stored == null || stored.length == 0) {
-            return "";
+    public static byte[] decode(String base64) {
+        if (base64 == null || base64.isBlank()) {
+            return new byte[0];
         }
-        String contentType = LogoMimeDetector.detect(decode(stored));
-        if (contentType == null) {
-            contentType = LogoMimeDetector.IMAGE_PNG;
-        }
-        return "data:" + contentType + ";base64," + base64Of(stored);
+        return decode(base64.getBytes(StandardCharsets.UTF_8));
     }
 
     private static String base64Of(byte[] stored) {
