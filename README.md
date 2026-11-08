@@ -106,6 +106,7 @@ Le proprietà si impostano in `application.properties`, da riga di comando (`-D<
 | `springdoc.api-docs.path` | `/api-docs` | Path della specifica OpenAPI generata |
 | `springdoc.swagger-ui.path` | `/swagger-ui.html` | Path della Swagger UI |
 | `springdoc.swagger-ui.enabled` | `true` | Abilita la Swagger UI |
+| `springdoc.swagger-ui.version` | `@swagger-ui.version@` | Versione della Swagger UI, presa in build dal govpay-bom: springdoc la usa per il percorso del webjar. Da non cambiare |
 | `springdoc.swagger-ui.operations-sorter` | `method` | Ordinamento delle operazioni nella Swagger UI |
 | `springdoc.swagger-ui.tags-sorter` | `alpha` | Ordinamento dei tag nella Swagger UI |
 
