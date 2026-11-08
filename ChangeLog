@@ -1,5 +1,12 @@
 2026-11-08  Giuliano Pintori <pintori@link.it>
 
+	* [Stampe] Avviso: creditor.pay_on_website da configurazione (#32).
+	govpay-stampe-api (link-it/govpay-stampe-api#47) stampa "oppure sul sito di
+	<ente>, ..." solo con pay_on_website a true. Nuova property
+	govpay.stampe.pay-on-website (variabile GOVPAY_API_STAMPE_PAY_ON_WEBSITE
+	nell'immagine Docker), default false: va attivata quando e' in esercizio il
+	portale di pagamento dell'ente collegato a queste API.
+
 	* [Stampe] Loghi di avviso e ricevuta come byte dell'immagine (#33).
 	govpay-stampe-api (link-it/govpay-stampe-api#38) riceve ora creditor_logo e
 	pagopa_logo della ricevuta come format: binary e risponde 400 a un logo

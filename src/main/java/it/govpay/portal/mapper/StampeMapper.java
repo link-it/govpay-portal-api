@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Component;
 
+import it.govpay.portal.config.GovPayStampeClientConfig;
 import it.govpay.portal.dominio.DominioLogoCodec;
 import it.govpay.portal.repository.DominioLogoRepository;
 import it.govpay.portal.entity.CausaleUtils;
@@ -22,9 +23,11 @@ import it.govpay.stampe.client.model.PaymentNotice;
 public class StampeMapper {
 
     private final DominioLogoRepository dominioLogoRepository;
+    private final GovPayStampeClientConfig stampeConfig;
 
-    public StampeMapper(DominioLogoRepository dominioLogoRepository) {
+    public StampeMapper(DominioLogoRepository dominioLogoRepository, GovPayStampeClientConfig stampeConfig) {
         this.dominioLogoRepository = dominioLogoRepository;
+        this.stampeConfig = stampeConfig;
     }
 
     /**
@@ -54,6 +57,8 @@ public class StampeMapper {
         if (dominio.getCbill() != null && !dominio.getCbill().isBlank()) {
             creditor.setCbillCode(dominio.getCbill());
         }
+        // "oppure sul sito di <ente>, ..." solo se il portale di pagamento dell'ente e' attivo
+        creditor.setPayOnWebsite(stampeConfig.isPayOnWebsite());
         notice.setCreditor(creditor);
 
         // Debitore

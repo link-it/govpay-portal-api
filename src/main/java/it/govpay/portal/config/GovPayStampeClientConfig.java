@@ -17,6 +17,14 @@ public class GovPayStampeClientConfig {
     private String baseUrl;
     private Logo logo = new Logo();
 
+    /**
+     * L'avviso si puo' pagare anche dal sito dell'ente ({@code creditor.pay_on_website}):
+     * la stampa riporta "oppure sul sito di &lt;ente&gt;, ...". Va attivata quando e' in
+     * esercizio il portale di pagamento dell'ente collegato a queste API; spenta, la
+     * stampa riporta solo "oppure dal tuo Home Banking, ...".
+     */
+    private boolean payOnWebsite = false;
+
     @Data
     public static class Logo {
         /** Logo pagoPA delle ricevute: testo base64 dell'immagine, anche come URI data. */

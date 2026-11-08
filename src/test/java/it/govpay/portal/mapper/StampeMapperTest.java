@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import it.govpay.portal.config.GovPayStampeClientConfig;
 import it.govpay.portal.entity.Dominio;
 import it.govpay.portal.entity.StatoVersamento;
 import it.govpay.portal.entity.Stazione;
@@ -34,6 +35,8 @@ class StampeMapperTest {
     @Mock
     private DominioLogoRepository dominioLogoRepository;
 
+    private final GovPayStampeClientConfig stampeConfig = new GovPayStampeClientConfig();
+
     private StampeMapper stampeMapper;
 
     private Dominio dominio;
@@ -42,7 +45,7 @@ class StampeMapperTest {
 
     @BeforeEach
     void setUp() {
-        stampeMapper = new StampeMapper(dominioLogoRepository);
+        stampeMapper = new StampeMapper(dominioLogoRepository, stampeConfig);
 
         stazione = Stazione.builder()
                 .id(1L)
@@ -203,6 +206,31 @@ class StampeMapperTest {
             PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
 
             assertNull(notice.getCreditor().getCbillCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("creditor.pay_on_website (issue #32)")
+    class PayOnWebsiteTests {
+
+        @Test
+        @DisplayName("Senza configurazione pay_on_website e' false")
+        void payOnWebsiteFalseDiDefault() {
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals(Boolean.FALSE, notice.getCreditor().getPayOnWebsite());
+            assertFalse(json(notice).get("creditor").get("pay_on_website").asBoolean());
+        }
+
+        @Test
+        @DisplayName("Con govpay.stampe.pay-on-website=true pay_on_website e' true")
+        void payOnWebsiteTrueDaConfigurazione() {
+            stampeConfig.setPayOnWebsite(true);
+
+            PaymentNotice notice = stampeMapper.toPaymentNotice(versamento, null);
+
+            assertEquals(Boolean.TRUE, notice.getCreditor().getPayOnWebsite());
+            assertTrue(json(notice).get("creditor").get("pay_on_website").asBoolean());
         }
     }
 

@@ -135,6 +135,7 @@ Il reCAPTCHA non ha proprietà proprie: abilitazione, chiavi, URL di verifica, n
 | `govpay.pendenze.password` | - | Password dell'applicazione |
 | `govpay.stampe.base-url` | - | URL base di govpay-stampe-api, es. `http://govpay-stampe-api:8080/api/v1` |
 | `govpay.stampe.logo.pagopa` | logo pagoPA (data URI PNG) | Logo pagoPA stampato sulle ricevute: testo base64 dell'immagine, anche come data URI `data:image/png;base64,...`. A govpay-stampe-api arrivano i byte dell'immagine |
+| `govpay.stampe.pay-on-website` | `false` | L'avviso si può pagare anche dal sito dell'ente: la stampa riporta "oppure sul sito di <ente>, ..." (`creditor.pay_on_website`). Da attivare quando è in esercizio il portale di pagamento dell'ente collegato a queste API |
 
 ### Giornale degli eventi e connettori
 
@@ -279,6 +280,7 @@ Variabili d'ambiente dell'immagine, oltre alle proprietà Spring Boot in forma d
 | `GOVPAY_API_PENDENZE_USERNAME` | sì, per i pagamenti spontanei | - | Utente dell'applicazione GovPay (`govpay.pendenze.username`) |
 | `GOVPAY_API_PENDENZE_PASSWORD` | sì, per i pagamenti spontanei | - | Password dell'applicazione GovPay (`govpay.pendenze.password`) |
 | `GOVPAY_API_STAMPE_URL` | sì, per i PDF | - | URL base di govpay-stampe-api (`govpay.stampe.base-url`) |
+| `GOVPAY_API_STAMPE_PAY_ON_WEBSITE` | no | `false` | `true` se l'avviso si può pagare dal portale dell'ente (`govpay.stampe.pay-on-website`) |
 | `SERVER_PORT` | no | `8080` | Porta HTTP del servizio |
 | `MANAGEMENT_SERVER_PORT` | no | `9090` | Porta degli endpoint actuator |
 | `CLUSTER_ID` | no | `portal-api` | Identificativo del nodo negli eventi del GDE |
