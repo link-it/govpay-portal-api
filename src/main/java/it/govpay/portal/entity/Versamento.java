@@ -83,6 +83,10 @@ public class Versamento {
     @Column(name = "data_scadenza")
     private LocalDateTime dataScadenza;
 
+    // data da cui l'avviso risulta pubblicato, dalle 00:00 (link-it/govpay#914)
+    @Column(name = "data_pubblicazione")
+    private LocalDateTime dataPubblicazione;
+
     @Column(name = "data_ora_ultimo_aggiornamento")
     private LocalDateTime dataOraUltimoAggiornamento;
 
@@ -235,4 +239,12 @@ public class Versamento {
     @Builder.Default
     private List<SingoloVersamento> singoliVersamenti = new ArrayList<>();
 
+
+    /**
+     * Indica se la pendenza e' pubblicata: senza data di pubblicazione, oppure con la data raggiunta.
+     * Prima della data l'avviso non esiste per il portale (Issue #40, link-it/govpay#914).
+     */
+    public boolean isPubblicato() {
+        return this.dataPubblicazione == null || !this.dataPubblicazione.isAfter(LocalDateTime.now());
+    }
 }
