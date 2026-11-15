@@ -1,3 +1,15 @@
+2026-11-15  Giuliano Pintori <pintori@link.it>
+
+	* [Pendenze] Pendenze con data di pubblicazione futura non visibili dal
+	portale (#40, link-it/govpay#914). Nuova colonna versamenti.data_pubblicazione
+	nell'entita' Versamento (patch 3.10.0 del core). Prima della data la
+	pendenza non esiste per il portale: esclusa dalle liste del debitore, 404
+	su lettura per avviso, avviso (anche PDF) e ricevuta. Senza data, o con la
+	data raggiunta, nulla cambia. Da installare dopo la patch 3.10.0 del core o
+	insieme, perche' la colonna deve esistere.
+	Verifica: nuovi test in PendenzeServiceTest e StampeServiceTest; suite
+	completa, 720 test passati.
+
 2026-11-09  Giuliano Pintori <pintori@link.it>
 
 	* [Release] Ramo 3.11.x: versione 2.1.0-SNAPSHOT

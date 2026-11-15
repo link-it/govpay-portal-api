@@ -505,4 +505,47 @@ class PendenzeServiceTest {
             assertEquals("NON_ESEGUITO", result.get().getStato());
         }
     }
+
+    @Nested
+    @DisplayName("Data di pubblicazione (Issue #40)")
+    class DataPubblicazioneTests {
+
+        @Test
+        @DisplayName("Le liste escludono le pendenze con data di pubblicazione futura")
+        void shouldExcludeNonPubblicateFromList() {
+            setupSecurityContext();
+
+            Versamento nonPubblicato = new Versamento();
+            nonPubblicato.setDataPubblicazione(LocalDateTime.now().plusDays(1));
+            versamento.setDataPubblicazione(LocalDateTime.now().minusDays(1));
+
+            Pendenza pendenzaModel = new Pendenza();
+            pendenzaModel.setNumeroAvviso("123456789012345678");
+
+            when(versamentoRepository.findByDominioCodDominioAndDebitoreIdentificativoOrderByDataCreazioneDesc(
+                    "12345678901", "RSSMRA80A01H501U"))
+                    .thenReturn(List.of(versamento, nonPubblicato));
+            when(pendenzeMapper.toPendenza(versamento)).thenReturn(pendenzaModel);
+
+            ListaPendenze result = pendenzeService.getPendenze("12345678901", null);
+
+            assertEquals(1, result.getRisultati().size());
+            verify(pendenzeMapper, never()).toPendenza(nonPubblicato);
+        }
+
+        @Test
+        @DisplayName("Pendenza, avviso e ricevuta non pubblicati non vengono restituiti")
+        void shouldReturnEmptyForNonPubblicata() {
+            setupSecurityContext();
+
+            versamento.setDataPubblicazione(LocalDateTime.now().plusDays(1));
+            when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
+                    .thenReturn(Optional.of(versamento));
+
+            assertTrue(pendenzeService.getPendenza("12345678901", "123456789012345678").isEmpty());
+            assertTrue(pendenzeService.getAvviso("12345678901", "123456789012345678").isEmpty());
+            assertTrue(pendenzeService.getRicevuta("12345678901", "123456789012345678").isEmpty());
+            verifyNoInteractions(pendenzeMapper);
+        }
+    }
 }

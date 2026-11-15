@@ -283,4 +283,22 @@ class StampeServiceTest {
             verify(receiptApi, never()).createReceipt(any());
         }
     }
+
+    @Nested
+    @DisplayName("Data di pubblicazione (Issue #40)")
+    class DataPubblicazioneTests {
+
+        @Test
+        @DisplayName("Il PDF dell'avviso non pubblicato non viene generato")
+        void shouldNotGenerateAvvisoPdfForNonPubblicata() {
+            versamento.setDataPubblicazione(LocalDateTime.now().plusDays(1));
+            when(versamentoRepository.findByDominioCodDominioAndNumeroAvviso("12345678901", "123456789012345678"))
+                    .thenReturn(Optional.of(versamento));
+
+            Optional<byte[]> result = stampeService.generateAvvisoPdf("12345678901", "123456789012345678", null);
+
+            assertTrue(result.isEmpty());
+            verify(paymentNoticeApi, never()).createPaymentNotice(any());
+        }
+    }
 }
