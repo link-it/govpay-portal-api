@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import it.govpay.common.metrics.ExternalCallMetricsRecorder;
+import it.govpay.portal.entity.Versamento;
 import it.govpay.portal.exception.BadGatewayException;
 import it.govpay.portal.mapper.StampeMapper;
 import it.govpay.portal.model.LinguaSecondaria;
@@ -63,7 +64,9 @@ public class StampeService {
             LinguaSecondaria linguaSecondaria) {
         log.debug("Generazione PDF avviso per dominio {} e numero avviso {}", idDominio, numeroAvviso);
 
+        // l'avviso non ancora pubblicato non esiste per il portale (Issue #40)
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
+                .filter(Versamento::isPubblicato)
                 .map(versamento -> {
                     try {
                         PaymentNotice paymentNotice = stampeMapper.toPaymentNotice(versamento, linguaSecondaria);
@@ -100,6 +103,7 @@ public class StampeService {
         log.debug("Generazione PDF ricevuta per dominio {} e numero avviso {}", idDominio, numeroAvviso);
 
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
+                .filter(Versamento::isPubblicato)
                 .flatMap(versamento -> rptRepository
                         .findFirstByVersamentoIdAndXmlRtIsNotNullOrderByDataMsgRicevutaDesc(versamento.getId()))
                 .map(rpt -> {
