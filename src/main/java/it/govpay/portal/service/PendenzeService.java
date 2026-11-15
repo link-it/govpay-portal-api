@@ -51,7 +51,9 @@ public class PendenzeService {
                     idDominio, codiceFiscale, statoVersamento);
         }
 
+        // le pendenze non ancora pubblicate non esistono per il portale (Issue #40)
         List<Pendenza> pendenze = versamenti.stream()
+                .filter(Versamento::isPubblicato)
                 .map(pendenzeMapper::toPendenza).toList();
 
         ListaPendenze result = new ListaPendenze();
@@ -66,16 +68,19 @@ public class PendenzeService {
 
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
                 .filter(v -> codiceFiscale.equals(v.getDebitoreIdentificativo()))
+                .filter(Versamento::isPubblicato)
                 .map(pendenzeMapper::toPendenza);
     }
 
     public Optional<Avviso> getAvviso(String idDominio, String numeroAvviso) {
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
+                .filter(Versamento::isPubblicato)
                 .map(versamento -> pendenzeMapper.toAvviso(versamento, versamento.getDominio()));
     }
 
     public Optional<Ricevuta> getRicevuta(String idDominio, String numeroAvviso) {
         return versamentoRepository.findByDominioCodDominioAndNumeroAvviso(idDominio, numeroAvviso)
+                .filter(Versamento::isPubblicato)
                 .map(pendenzeMapper::toRicevuta);
     }
 
