@@ -36,6 +36,10 @@ import it.govpay.portal.repository.TipoVersamentoDominioRepository;
 import it.govpay.common.configurazione.model.Hardening;
 import it.govpay.portal.service.ConfigurazioneService;
 import it.govpay.portal.test.TemplateTestUtils;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariDataSource;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -383,5 +387,19 @@ class PendenzeControllerIntegrationTest {
         // Verifica soggetto pagatore
         assertEquals("BNCLRA85M01H501Z", pendenzaInviata.getSoggettoPagatore().getIdentificativo());
         assertEquals("Laura Bianchi", pendenzaInviata.getSoggettoPagatore().getAnagrafica());
+    }
+
+    @Autowired
+    private DataSource dataSource;
+
+    /**
+     * #45: il pool usa READ_COMMITTED come il core GovPay, non il default del database.
+     */
+    @Test
+    void isolamentoReadCommitted() throws SQLException {
+        assertEquals("TRANSACTION_READ_COMMITTED", dataSource.unwrap(HikariDataSource.class).getTransactionIsolation());
+        try (Connection connection = dataSource.getConnection()) {
+            assertEquals(Connection.TRANSACTION_READ_COMMITTED, connection.getTransactionIsolation());
+        }
     }
 }
